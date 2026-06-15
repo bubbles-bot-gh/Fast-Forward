@@ -1,6 +1,9 @@
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public interface IRepoInfo
+internal interface IRepoInfo
 {
-    
+    string Name { get; }
+    IPrInfo Pr { get; }
+    string Owner { get; }
+    string CloneUrl { get; }
 }

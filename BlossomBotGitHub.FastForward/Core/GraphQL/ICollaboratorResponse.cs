@@ -1,12 +1,12 @@
 namespace BlossomBotGitHub.FastForward.Core.GraphQL;
 
-public interface ICollaboratorResponse
+internal interface ICollaboratorResponse
 {
-    public interface IRepository
+    internal interface IRepository
     {
-        public interface ICollaborators
+        internal interface ICollaborators
         {
-            public int TotalCount { get; }
+            internal int TotalCount { get; }
         }
     }
 }

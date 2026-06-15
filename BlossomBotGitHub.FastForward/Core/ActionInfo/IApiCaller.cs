@@ -2,7 +2,7 @@ using BlossomBotGitHub.FastForward.Core.GraphQL;
 
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public interface IApiCaller
+internal interface IApiCaller
 {
     Task<IPrResponse> GetPullRequest(string owner, string repoName, int prNumber);
     Task<IComparisonResponse> GetBaseHeadComparison(string owner, string repoName, string baseSha, string headLabel);

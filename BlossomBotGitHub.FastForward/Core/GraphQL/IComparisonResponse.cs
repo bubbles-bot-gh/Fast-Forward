@@ -1,12 +1,12 @@
 namespace BlossomBotGitHub.FastForward.Core.GraphQL;
 
-public interface IComparisonResponse
+internal interface IComparisonResponse
 {
-    public int Status { get; }
-    public Dictionary<string, string> Headers { get; }
+    internal int Status { get; }
+    internal Dictionary<string, string> Headers { get; }
 
-    public interface IData
+    internal interface IData
     {
-        public string Status { get; }
+        internal string Status { get; }
     }
 }

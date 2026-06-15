@@ -1,6 +1,6 @@
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public interface IOptions
+internal interface IOptions
 {
     bool AutoMerge { get; }
     string PostComment { get; }
