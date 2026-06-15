@@ -1,4 +1,4 @@
-namespace BlossomBotGitHub.FastForward.Core;
+namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
 public interface IRepoInfo
 {

@@ -1,6 +1,6 @@
 using BlossomBotGitHub.FastForward.Core.GraphQL;
 
-namespace BlossomBotGitHub.FastForward.Core;
+namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
 public interface IApiCaller
 {
