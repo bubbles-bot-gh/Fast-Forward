@@ -2,10 +2,10 @@ using Octokit.Webhooks;
 
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public delegate Task<bool> UserPermsCheck(IRepoInfo repo);
-public delegate Task<bool> IsPossible(IRepoInfo repo);
+internal delegate Task<bool> UserPermsCheck(IRepoInfo repo);
+internal delegate Task<bool> IsPossible(IRepoInfo repo);
 
-public interface IEventInfo
+internal interface IEventInfo
 {
     IApiCaller ApiCaller { set; }
     bool ShouldExit { get; set; }

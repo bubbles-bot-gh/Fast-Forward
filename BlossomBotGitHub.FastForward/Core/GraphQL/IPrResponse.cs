@@ -1,24 +1,24 @@
 namespace BlossomBotGitHub.FastForward.Core.GraphQL;
 
-public interface IPrResponse
+internal interface IPrResponse
 {
-    public interface IRepository 
+    internal interface IRepository 
     {
-        public interface IPullRequest
+        internal interface IPullRequest
         {
-            public string BaseRefName { get; }
-            public string BaseRefOid { get; }
-            public string HeadRefName { get; }
-            public string HeadRefOid { get; }
-            public interface IHeadRepository
+            internal string BaseRefName { get; }
+            internal string BaseRefOid { get; }
+            internal string HeadRefName { get; }
+            internal string HeadRefOid { get; }
+            internal interface IHeadRepository
             {
-                public string Name { get; }
+                internal string Name { get; }
             }
             public interface IHeadRepositoryOwner
             {
-                public string Login { get; }
+                internal string Login { get; }
             }
-            public string Id { get; }
+            internal string Id { get; }
         }
     }
 }

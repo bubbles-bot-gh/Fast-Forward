@@ -1,6 +1,6 @@
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public interface IActionInfo
+internal interface IActionInfo
 {
     IApiCaller ApiCaller { get; }
     IRepoInfo RepoInfo { get; }

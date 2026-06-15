@@ -2,7 +2,7 @@ using Octokit.Webhooks;
 
 namespace BlossomBotGitHub.FastForward.Core.ActionInfo;
 
-public interface IPrInfo
+internal interface IPrInfo
 {
     Task FinishInitialization(IApiCaller apiCaller, WebhookEvent webhookEvent, ActionEventType eventType);
     string BaseRef { get; }
