@@ -9,18 +9,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Octokit" Version="14.0.0" />
-      <PackageReference Include="Octokit.Webhooks" Version="4.0.3" />
+        <PackageReference Include="Octokit" Version="14.0.0"/>
+        <PackageReference Include="Octokit.Webhooks" Version="4.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Implements\" />
+        <Folder Include="Implements\"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="BlossomBotGitHub.Tests" />
     </ItemGroup>
 
 </Project>

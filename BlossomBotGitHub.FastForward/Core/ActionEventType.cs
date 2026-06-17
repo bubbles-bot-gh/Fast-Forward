@@ -1,6 +1,6 @@
 namespace BlossomBotGitHub.FastForward.Core;
 
-public enum ActionEventType
+internal enum ActionEventType
 {
     PullRequestOpened,
     IssueCommentCreated,
