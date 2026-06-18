@@ -1,5 +1,7 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using BlossomBotGitHub.FastForward.Core;
+using BlossomBotGitHub.FastForward.Core.Git;
 
 namespace BlossomBotGitHub.Tests.Unit;
 
@@ -14,28 +16,81 @@ public class GitTest
         _testOut = testOut;
     }
     
-    [Fact]
-    public async Task RunsProcessAsync()
+    public class RunProcessAsync
     {
-        MethodInfo? subjectMethod = typeof(Git).GetMethod("RunProcessAsync", BindingFlags.Static | BindingFlags.NonPublic);
-        if (subjectMethod == null) throw new NullReferenceException("RunProcessAsync");
+        private readonly MethodInfo _subjectMethod = typeof(Git).GetMethod(
+            name: "RunProcessAsync", 
+            bindingAttr: BindingFlags.Static | BindingFlags.NonPublic) 
+            ?? throw new NullReferenceException("RunProcessAsync");
+
+        [Fact]
+        public async Task RunsProcessSuccessfully()
+        {
+            List<string> args = [ "hello world" ];
+            object invokeResult = _subjectMethod.Invoke(null, ["echo", args, Environment.CurrentDirectory]) 
+                                  ?? throw new NullReferenceException();
+
+            Task<IProcessOut> taskResult = invokeResult as Task<IProcessOut>
+                                                     ?? throw new NullReferenceException();
         
-        List<string> args = [ "hello world" ];
-        if (subjectMethod
-            .Invoke(null, ["echo", args, Environment.CurrentDirectory]) 
-            is not Task<(int, string, string)> invokeResult) 
-            throw new NullReferenceException();
-        
-        (int exitCode, string output, string error) result = await invokeResult;
-        Assert.Equal("hello world", result.output.Trim());
+            IProcessOut result = await taskResult;
+            Assert.Equal("hello world", result.StdOut.Trim());
+        }
+
+        [Fact]
+        public async Task FailsToStartProcess()
+        {
+            List<string> args = [ "hello world" ];
+            string fakeExe = $"nonexistant-{Guid.NewGuid():N}";
+            object invokeResult = _subjectMethod.Invoke(null, [ fakeExe, args, Environment.CurrentDirectory ]) 
+                            ?? throw new InvalidOperationException();
+            
+            Task taskResult = invokeResult as Task ?? throw new InvalidOperationException();
+
+            await Assert.ThrowsAsync<Win32Exception>(async () => await taskResult);
+        }
     }
 
+    public class DeleteRecursive
+    {
+        private readonly MethodInfo _subjectMethod = typeof(Git).GetMethod(
+            name: "DeleteRecursive",
+            bindingAttr: BindingFlags.Static | BindingFlags.NonPublic)
+            ?? throw new NullReferenceException("DeleteRecursive");
+
+        [Fact]
+        public void DeletesDirectorySuccessfully()
+        {
+            // Create test directory
+            Directory.CreateDirectory("./tmp/DeleteRecursive_SuccessTest");
+            _subjectMethod.Invoke(null, ["./tmp/DeleteRecursive_SuccessTest"]);
+            
+            // Verify directory is deleted
+            bool exists = Directory.Exists("./tmp/DeleteRecursive_SuccessTest");
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public void FailsToDeleteDirectory()
+        {
+            Directory.CreateDirectory("./tmp/DeleteRecursive_FailTest");
+            _subjectMethod.Invoke(null, ["./tmp/DeleteRecursive_FailTest"]);
+            
+            // Verify directory is not deleted
+            bool exists = Directory.Exists("./tmp/DeleteRecursive_FailTest");
+            Assert.True(exists);
+            
+            // Actually remove directory
+            Directory.Delete("./tmp/DeleteRecursive_FailTest");
+        }
+    }
+    
     public class CloneRepo
     {
         [Fact]
         public async Task ClonesRepoSuccessfully()
         {
-            await Git.CloneRepoAsync("https://github.com/luneisolei/fast-forward-blossom-bot.git",
+            await CloneRepoAsync("https://github.com/luneisolei/fast-forward-blossom-bot.git",
                 "./tmp");
             Assert.True(Directory.Exists("./tmp/repo/.git"));
         }
@@ -46,11 +101,5 @@ public class GitTest
             Task result = Git.CloneRepoAsync("nothing", "./tmp");
             await Assert.ThrowsAsync<Exception>(async () => await result);
         }
-    }
-
-    [Fact]
-    public async Task Test()
-    {
-        _fixture.TestFunc(_testOut);
     }
 }
