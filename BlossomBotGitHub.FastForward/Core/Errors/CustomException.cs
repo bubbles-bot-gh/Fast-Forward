@@ -13,7 +13,6 @@ internal abstract class CustomException : Exception
         Reason = reason;
         
         Console.Error.WriteLine($"::error file={sourceFile},line={sourceLine}::{base.Message}");
-        Environment.Exit(1);
     }
 
     private static string FormatMessage(string msg, string reason, string sourceFile, int sourceLine) =>
