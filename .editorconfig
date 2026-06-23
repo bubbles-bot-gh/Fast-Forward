@@ -15,7 +15,6 @@ arguments_named = named
 arguments_skip_single = true
 wrap_after_invocation_lpar = true
 wrap_arguments_style = chop_if_long
-naming_
 
 # Binary Expressions
 align_multiline_binary_expressions_chain = false
@@ -29,3 +28,6 @@ instance_members_qualify_declared_in = base_class
 # Var Usage
 csharp_style_var_for_built_in_types = false
 csharp_style_var_elsewhere = false
+
+[*.{yml,yaml,mmd}]
+indent_size = 2
