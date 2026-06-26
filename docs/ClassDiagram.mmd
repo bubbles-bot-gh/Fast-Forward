@@ -5,9 +5,9 @@ config:
   layout: elk
   elk:
     mergeEdges: true
-  theme: default
-  look: neo
+  theme: base
 ---
+
 classDiagram
 direction TB
   Program ..> ServiceCollectionExtensions
@@ -67,78 +67,86 @@ direction TB
   EventInfo ..|> IEventInfo : implements
 
   namespace Core {
-    class ICommentBuilder {
-      +Task~string~ BuildAsync
+    namespace CommentBuilder {
+      class ICommentBuilder {
+        +Task~string~ BuildAsync
+      }
     }
     
-    class IGit {
-      +void CloneRepoAsync(string cloneUrl, string workingDir)
-      +void Log(string workingDir)
-      +string GetMergeBaseSha(string mainHeadSha, string currentHeadSha)
-      +uint GetParentsCount(string sha)
+    namespace Git {
+      class IGit {
+        +void CloneRepoAsync(string cloneUrl, string workingDir)
+        +void Log(string workingDir)
+        +string GetMergeBaseSha(string mainHeadSha, string currentHeadSha)
+        +uint GetParentsCount(string sha)
+      }
     }
     
-    class IActionInfoFactory {
-      +IActionInfo Create()$
+    namespace ActionInfoFactory {
+      class IActionInfoFactory {
+        +IActionInfo Create()$
+      }
+      
+      class IActionInfo {
+        +IEventInfo EventInfo
+        +IRepoInfo RepoInfo
+        +IPrInfo PrInfo
+      }
+      
+      class IPrInfo {
+        +string BaseRef
+        +string BaseSha
+        +string HeadRef
+        +string HeadSha
+        +string HeadLabel
+        +string HeadOwner
+        +string HeadRepo
+        +string MergeBaseSha
+        +uint MergeBaseParentsCount
+        +string PrNodeId
+        +string BaseNodeId
+        +string HeadNodeId
+        +uint IssueNumber 
+      }
+      
+      class IRepoInfo {
+        +string Name
+        +string Owner
+        +string CloneUrl
+      }
+      
+      class IActionOptions {
+        +boolean IsAutoMerge
+        +string PostComment
+        +string Command
+      }
+      
+      class IEventInfo {
+        +boolean IsShouldExit
+        +string CommentBody
+        +boolean IsCommandInvoked
+        +ActionEventType EventType
+        +ActionEvent Event
+        +string User
+        +boolean GetUserHasPerms(IRepoInfo repoInfo)
+        +boolean GetIsPossible(IRepoInfo repoInfo)
+      }
     }
     
-    class IActionInfo {
-      +IEventInfo EventInfo
-      +IRepoInfo RepoInfo
-      +IPrInfo PrInfo
-    }
-    
-    class IPrInfo {
-      +string BaseRef
-      +string BaseSha
-      +string HeadRef
-      +string HeadSha
-      +string HeadLabel
-      +string HeadOwner
-      +string HeadRepo
-      +string MergeBaseSha
-      +uint MergeBaseParentsCount
-      +string PrNodeId
-      +string BaseNodeId
-      +string HeadNodeId
-      +uint IssueNumber 
-    }
-    
-    class IRepoInfo {
-      +string Name
-      +string Owner
-      +string CloneUrl
-    }
-    
-    class IActionOptions {
-      +boolean IsAutoMerge
-      +string PostComment
-      +string Command
-    }
-    
-    class IEventInfo {
-      +boolean IsShouldExit
-      +string CommentBody
-      +boolean IsCommandInvoked
-      +ActionEventType EventType
-      +ActionEvent Event
-      +string User
-      +boolean GetUserHasPerms(IRepoInfo repoInfo)
-      +boolean GetIsPossible(IRepoInfo repoInfo)
-    }
-    
-    class IGitHubApiCaller {
-      +Task~IGqlResponsePr~ GetPullRequest(string repoOwner, string repoName, uint prNumber)
-      +Task~IApiResponseCompare~ GetBaseHeadComparison(string repoOwner, string repoName, string baseSha, string headLabel)
-      +Task~IGqlResponseCollaborator~ GetCollaborator(string repoOwner, string repoName, string user)
-      +Task PostComment(string nodeId, string comment)
-      +Task~IGqlCommit~ GetCommit(string repoOwner, string repoName, string sha)
-      +Task~string~ GetNodeId(string repoOwner, string qualifiedName)
-      +Task FastForward(string nodeId, string oid)
-    }
-    
-    class IGitHubApiCallerFactory {
-      +IGitHubApiCaller Create()$
+    namespace GitHubApiCaller {
+      class IGitHubApiCaller {
+        +Task~IGqlResponsePr~ GetPullRequest(string repoOwner, string repoName, uint prNumber)
+        +Task~IApiResponseCompare~ GetBaseHeadComparison(string repoOwner, string repoName, string baseSha, string headLabel)
+        +Task~IGqlResponseCollaborator~ GetCollaborator(string repoOwner, string repoName, string user)
+        +Task PostComment(string nodeId, string comment)
+        +Task~IGqlCommit~ GetCommit(string repoOwner, string repoName, string sha)
+        +Task~string~ GetNodeId(string repoOwner, string qualifiedName)
+        +Task FastForward(string nodeId, string oid)
+      }
+      
+      class IGitHubApiCallerFactory {
+        +IGitHubApiCaller Create()$
+      }
     }
   }
   
@@ -150,59 +158,67 @@ direction TB
       class Octokit { }
     }
     
-    class CommentBuilder {
-      -IActionInfo _actionInfo
-      -IGitHubApiCaller _gitHubApiCaller
-      -string _baseFullRef
-      -string _headFullRef
-      -List~string~ _comment
+    namespace CommentBuilder {
+      class CommentBuilder {
+        -IActionInfo _actionInfo
+        -IGitHubApiCaller _gitHubApiCaller
+        -string _baseFullRef
+        -string _headFullRef
+        -List~string~ _comment
+      }
     }
     
-    class Git {
-      -string RunProcessAsync(string fileName, IEnumerable~string~ args, string workingDir)
-      -void DeleteRecursive(string path)
+    namespace Git {
+      class Git {
+        -string RunProcessAsync(string fileName, IEnumerable~string~ args, string workingDir)
+        -void DeleteRecursive(string path)
+      }
+    }
+   
+    namespace ActionInfoFactory {
+      class ActionInfoFactory {
+        -EventInfo createEventInfo()
+        -RepoInfo createRepoInfo()
+        -PrInfo createPrInfo()
+      }
+      
+      class ActionInfo {
+        ~ActionInfo(IGitHubApiCaller gitHubApiCaller, IEventInfo eventInfo, IRepoInfo repoInfo, IPrInfo)
+      }
+      
+      class PrInfo {
+        ~PrInfo(ActionEvent event)
+      }
+      
+      class RepoInfo {
+        ~RepoInfo(ActionEvent event)
+      }
+      
+      class ActionOptions {
+        -ActionOptions()
+      }
+      
+      class EventInfo {
+        ~EventInfo(ActionEvent event)
+      }
     }
     
-    class ActionInfoFactory {
-      -EventInfo createEventInfo()
-      -RepoInfo createRepoInfo()
-      -PrInfo createPrInfo()
-    }
-    
-    class ActionInfo {
-      ~ActionInfo(IGitHubApiCaller gitHubApiCaller, IEventInfo eventInfo, IRepoInfo repoInfo, IPrInfo)
-    }
-    
-    class PrInfo {
-      ~PrInfo(ActionEvent event)
-    }
-    
-    class RepoInfo {
-      ~RepoInfo(ActionEvent event)
-    }
-    
-    class ActionOptions {
-      -ActionOptions()
-    }
-    
-    class EventInfo {
-      ~EventInfo(ActionEvent event)
-    }
-    
-    class GitHubApiCaller {
-      -Octokit _octokit
-      ~GitHubApiCaller(Octokit octokit)
-    }
-    
-    class GitHubApiCallerFactory {
-      -string GetInstallationToken(string installationId)$
+    namespace GitHubApiCaller {
+      class GitHubApiCaller {
+        -Octokit _octokit
+        ~GitHubApiCaller(Octokit octokit)
+      }
+      
+      class GitHubApiCallerFactory {
+        -string GetInstallationToken(string installationId)$
+      }
     }
     
     class ServiceCollectionExtensions {
-      -IServiceCollection AddActionOptions()
-      -IServiceCollection AddGitHubApiCaller()
-      -IServiceCollection AddActionInfo()
-      +IServiceCollection AddAppServices()
+      -IServiceCollection AddActionOptions()$
+      -IServiceCollection AddGitHubApiCaller()$
+      -IServiceCollection AddActionInfo()$
+      +IServiceCollection AddAppServices()$
     }
   }
   

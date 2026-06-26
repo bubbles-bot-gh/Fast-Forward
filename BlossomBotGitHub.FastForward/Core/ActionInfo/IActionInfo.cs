@@ -4,6 +4,6 @@ internal interface IActionInfo
 {
     IApiCaller ApiCaller { get; }
     IRepoInfo RepoInfo { get; }
-    IOptions Options { get; }
+    IActionOptions ActionOptions { get; }
     IEventInfo EventInfo { get; }
 }
