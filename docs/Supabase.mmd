@@ -1,0 +1,29 @@
+---
+config:
+  look: neo
+  theme: neo
+---
+flowchart TD
+  GetOidcIdToken --Uses 'Authorization' header--> MakeReq
+  GetOidcIdToken -.- OidcIdTokenNote
+  MakeReq --> IsJwtValid
+  IsJwtValid -->|Yes| CreateAppAuth
+  IsJwtValid -->|No| ReturnError
+  CreateAppAuth --> GetInstallationId
+  GetInstallationId --> CreateInstallationAuth
+  CreateInstallationAuth --> RetrieveToken
+  RetrieveToken --> ReturnToken
+  ReturnToken --> End
+  ReturnError --> End
+  
+  GetOidcIdToken([Get OIDC ID token])
+  OidcIdTokenNote@{ shape: notch-rect, label: "Make sure user workflow sets 'permissions.id-token: write'"}
+  MakeReq[GET request]
+  IsJwtValid{Is JWT valid?}
+  GetInstallationId[Get installation ID]
+  CreateAppAuth[Create app auth]
+  CreateInstallationAuth[Create installation auth]
+  RetrieveToken[Retrieve installation access token]
+  ReturnToken[Return token]
+  ReturnError[Return error]
+  End([Done])
