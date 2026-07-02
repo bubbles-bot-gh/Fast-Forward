@@ -14,7 +14,6 @@
     <envs />
     <method v="2">
       <option name="Build" default="false" projectName="BlossomBotGitHub.Tests" projectPath="$PROJECT_DIR$/BlossomBotGitHub.Tests/BlossomBotGitHub.Tests.csproj" />
-      <option name="RunConfigurationTask" enabled="false" run_configuration_name="Run Tests" run_configuration_type="DotNetProject" />
     </method>
   </configuration>
 </component>

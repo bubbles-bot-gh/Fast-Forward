@@ -8,4 +8,9 @@ internal class GitHubApiCallerFactory : IGitHubApiCallerFactory
     {
         return new GitHubApiCaller();
     }
+
+    private string GetInstallationToken(string installationId)
+    {
+        
+    }
 }

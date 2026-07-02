@@ -3,6 +3,14 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
+    "features": {
+        "ghcr.io/devcontainers/features/node": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/deno": {
+            "version": "latest"
+        }
+    },
     "initializeCommand": "sh .devcontainer/se-linux-podman/export-gpg-keys.sh ${localWorkspaceFolder}",
     "postCreateCommand": "sh .devcontainer/se-linux-podman/post-create-command.sh ${localWorkspaceFolderBasename}",
     "forwardPorts": [63341],
