@@ -1,3 +1,5 @@
+
+
 # Generate the coverage report
 dotnet \
     ~/.nuget/packages/reportgenerator/5.5.10/tools/net10.0/ReportGenerator.dll \
