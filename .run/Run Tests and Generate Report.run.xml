@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Tests and Generate Report" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="reportgenerator -reports:BlossomBotGitHub.Tests/bin/Debug/net10.0/TestResults/coverage.cobertura.xml -targetdir:CoverageReport" />
+    <option name="SCRIPT_TEXT" value="reportgenerator -reports:BubblesBotGitHub.Tests/bin/Debug/net10.0/TestResults/coverage.cobertura.xml -targetdir:CoverageReport" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
-    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/BlossomBotGitHub.Tests/Tools/GenerateReport.sh" />
+    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/BubblesBotGitHub.Tests/Tools/GenerateReport.sh" />
     <option name="SCRIPT_OPTIONS" value="" />
     <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
     <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -13,7 +13,7 @@
     <option name="EXECUTE_SCRIPT_FILE" value="true" />
     <envs />
     <method v="2">
-      <option name="Build" default="false" projectName="BlossomBotGitHub.Tests" projectPath="$PROJECT_DIR$/BlossomBotGitHub.Tests/BlossomBotGitHub.Tests.csproj" />
+      <option name="Build" default="false" projectName="BubblesBotGitHub.Tests" projectPath="$PROJECT_DIR$/BubblesBotGitHub.Tests/BubblesBotGitHub.Tests.csproj" />
     </method>
   </configuration>
 </component>

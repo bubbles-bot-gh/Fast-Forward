@@ -122,6 +122,18 @@ fi
 echo ""
 echo -e "Exporting ${#KEYS_TO_EXPORT[@]} key(s)..."
 gpg --export "${KEYS_TO_EXPORT[@]}" > "$OUTPUT_FILE"
+
+# Write metadata: fingerprint<TAB>uid for each selected key
+META_FILE="${1}/tmp/.gpg-export.meta"
+: > "$META_FILE"
+for fpr in "${KEYS_TO_EXPORT[@]}"; do
+  for i in "${!FINGERPRINTS[@]}"; do
+    if [[ "${FINGERPRINTS[$i]}" == "$fpr" ]]; then
+      printf "%s\t%s\n" "$fpr" "${UIDS[$i]}" >> "$META_FILE"
+    fi
+  done
+done
+
 echo -e "Exported to $OUTPUT_FILE"
 echo -e "Keys will be imported when the container starts."
 echo ""
