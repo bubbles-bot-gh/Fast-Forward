@@ -4,5 +4,13 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 
-/BlossomBotGitHub.Tests/Tools/CoverageReport/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/forwardedPorts.xml
+
+BubblesBotGitHub.sln.DotSettings.user
+BubblesBotGitHub.Tests/Tools/CoverageReport/
 node_modules/
