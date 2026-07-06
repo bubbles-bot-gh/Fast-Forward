@@ -32,9 +32,4 @@ public class AssemblyFixture
         })
             .BuildServiceProvider();
     }
-    
-    public void TestFunc(ITestOutputHelper testOut)
-    {
-        testOut.WriteLine("Hello World!");
-    }
 }
