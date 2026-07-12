@@ -1,3 +1,5 @@
+using BubblesBotGitHub.FastForward.Core.Git;
+using BubblesBotGitHub.FastForward.Implements.Git;
 using JetBrains.Annotations;
 
 namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
@@ -12,13 +14,5 @@ public class GetMergeBaseShaFixture
     public static string ExpectedMergeBaseSha => AssemblyFixture.BaseSha;
     public static string InvalidSha => "1";
     public static string RepoUrl => AssemblyFixture.RepoUrl;
-    
-    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
-
-    public ValueTask DisposeAsync()
-    {
-        Directory.Delete(path: FixtureWorkingDir, recursive: true);
-        
-        return ValueTask.CompletedTask;
-    }
+    public readonly IGit Subject = new Git(new ProcessOutFactory());
 }
