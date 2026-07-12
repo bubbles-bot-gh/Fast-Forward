@@ -1,18 +1,16 @@
 using System.Net;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
-using BubblesBotGitHub.Tests.Fixtures;
 using BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
 using Moq;
 using Moq.Protected;
 
 namespace BubblesBotGitHub.Tests.Unit;
 
-public sealed class GitHubApiCallerTests(AssemblyFixture assemblyFixture, GitHubApiCallerFixture classFixture) 
+public sealed class GitHubApiCallerTests(GitHubApiCallerFixture classFixture) 
     : IClassFixture<GitHubApiCallerFixture>
 {
-    private readonly AssemblyFixture _assemblyFixture = assemblyFixture;
-    private Mock<HttpMessageHandler> _mockHttpHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+    private Mock<HttpMessageHandler> _mockHttpHandler = new(MockBehavior.Strict);
 
     [Fact]
     public void CreateApiCaller()
