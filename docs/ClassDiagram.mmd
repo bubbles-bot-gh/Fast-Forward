@@ -204,18 +204,19 @@ direction TB
     
     namespace GitHubApiCaller {
       class GitHubApiCaller {
-        -Octokit _octokit
-        ~GitHubApiCaller(Octokit octokit)
+        ~GitHubApiCaller(IGitHubClient octokit)
       }
       
       class GitHubApiCallerFactory {
-        -string GetInstallationToken(string installationId)$
+        +GitHubApiCallerFactory(HttpClient httpClient)
+        +IGitHubApiCaller Create()
+        -string GetOidcToken()
+        -string GetInstallationToken(string oidcToken)
       }
     }
     
     class ServiceCollectionExtensions {
       -IServiceCollection AddGitHubApiCaller()$
-      -IServiceCollection AddActionInfo()$
       +IServiceCollection AddAppServices()$
     }
   }
