@@ -10,7 +10,7 @@ namespace BubblesBotGitHub.Tests.Unit;
 public sealed class GitHubApiCallerTests(GitHubApiCallerFixture classFixture) 
     : IClassFixture<GitHubApiCallerFixture>
 {
-    private Mock<HttpMessageHandler> _mockHttpHandler = new(MockBehavior.Strict);
+    private readonly Mock<HttpMessageHandler> _mockHttpHandler = new(MockBehavior.Strict);
 
     [Fact]
     public void CreateApiCaller()
