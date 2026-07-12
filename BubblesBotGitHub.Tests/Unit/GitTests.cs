@@ -1,20 +1,17 @@
 ﻿using BubblesBotGitHub.FastForward.Core.Errors;
 using BubblesBotGitHub.FastForward.Core.Git;
+using BubblesBotGitHub.FastForward.Implements.Git;
 using BubblesBotGitHub.Tests.Fixtures;
 using BubblesBotGitHub.Tests.Fixtures.GitTests;
 using JetBrains.Annotations;
-using Microsoft.Extensions.DependencyInjection;
 namespace BubblesBotGitHub.Tests.Unit;
 
 [UsedImplicitly]
 public sealed class GitTests
 {
-    public sealed class CloneRepo(AssemblyFixture assemblyFixture) 
+    public sealed class CloneRepo(CloneRepoFixture classFixture)
         : IAsyncLifetime, IClassFixture<CloneRepoFixture>
     {
-        private readonly IGit _subject = assemblyFixture.Services.GetService<IGit>() 
-            ?? throw new InvalidOperationException("Cannot get service of type 'IGit'.");
-
         private string WorkingDir { get; } = CloneRepoFixture.WorkingDir;
         
         public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -30,7 +27,7 @@ public sealed class GitTests
         [Fact]
         public async Task ClonesRepo_IntoWorkingDirectory_Successfully()
         {
-            await _subject.CloneRepoAsync(CloneRepoFixture.RepoUrl, WorkingDir);
+            await classFixture.Subject.CloneRepoAsync(CloneRepoFixture.RepoUrl, WorkingDir);
             
             Assert.True(Directory.Exists($"{WorkingDir}/.git"));
         }
@@ -38,7 +35,7 @@ public sealed class GitTests
         [Fact]
         public async Task FailsOnInvalidRepo()
         {
-            Task result = _subject.CloneRepoAsync(
+            Task result = classFixture.Subject.CloneRepoAsync(
                 cloneUrl: "IAmAnInvalidRepo",
                 workingDir: WorkingDir);
             
@@ -48,7 +45,7 @@ public sealed class GitTests
         [Fact]
         public async Task Throws_OnWhiteSpaceUrl()
         {
-            Task result = _subject.CloneRepoAsync(
+            Task result = classFixture.Subject.CloneRepoAsync(
                 cloneUrl: "",
                 workingDir: WorkingDir);
             
@@ -58,7 +55,7 @@ public sealed class GitTests
         [Fact]
         public async Task Throws_OnWhiteSpaceWorkingDirectory()
         {
-            Task result = _subject.CloneRepoAsync(
+            Task result = classFixture.Subject.CloneRepoAsync(
                 cloneUrl: AssemblyFixture.RepoUrl,
                 workingDir: "");
             
@@ -75,7 +72,7 @@ public sealed class GitTests
             File.Create(testFilePath);
 
             // Clone the repo
-            await _subject.CloneRepoAsync(
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: CloneRepoFixture.RepoUrl,
                 workingDir: WorkingDir);
             
@@ -83,26 +80,16 @@ public sealed class GitTests
         }
     }
 
-    public sealed class Log : IAsyncLifetime, IClassFixture<LogFixture>
+    public sealed class Log(ITestOutputHelper testOutput, LogFixture classFixture)
+    : IAsyncLifetime, IClassFixture<LogFixture>
     {
-        private readonly IGit _subject;
-        private readonly ITestOutputHelper _testOutput;
         private string WorkingDir { get; } = LogFixture.WorkingDir;
-    
-        public Log(AssemblyFixture assemblyFixture, ITestOutputHelper testOutput)
-        {
-            _testOutput = testOutput;
-            _subject = assemblyFixture.Services.GetService<IGit>() 
-                ?? throw new InvalidOperationException("Cannot get service of type 'IGit'.");
-        }
-
         public async ValueTask InitializeAsync()
         {
-            await _subject.CloneRepoAsync(
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: AssemblyFixture.RepoUrl,
                 workingDir: WorkingDir);
         }
-    
         public ValueTask DisposeAsync()
         {
             if (Directory.Exists(WorkingDir))
@@ -119,17 +106,17 @@ public sealed class GitTests
             string headSha,
             string workingDir)
         {
-            _testOutput.WriteLine(WorkingDir);
-            await _subject.CloneRepoAsync(
+            testOutput.WriteLine(WorkingDir);
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: AssemblyFixture.RepoUrl,
                 workingDir: workingDir);
             
-            string result = await _subject.Log(
+            string result = await classFixture.Subject.Log(
                 exclude: exclude,
                 baseSha: baseSha,
                 headSha: headSha,
                 workingDir: workingDir);
-            _testOutput.WriteLine(result);
+            testOutput.WriteLine(result);
             Directory.Delete(path: workingDir, recursive: true);
             
             Assert.NotEmpty(result);
@@ -138,7 +125,7 @@ public sealed class GitTests
         [Fact]
         public async Task FailsWithInvalidSha()
         {
-            Task<string> result = _subject.Log(
+            Task<string> result = classFixture.Subject.Log(
                 exclude: "",
                 baseSha: "IAmAnInvalidSHA",
                 headSha: "IAmAnInvalidSHAToo\"",
@@ -148,11 +135,9 @@ public sealed class GitTests
         }
     }
 
-    public sealed class GetMergeBaseSha(AssemblyFixture assemblyFixture)
+    public sealed class GetMergeBaseSha(GetMergeBaseShaFixture classFixture)
         : IClassFixture<GetMergeBaseShaFixture>, IAsyncLifetime
     {
-        private readonly IGit _subject = assemblyFixture.Services.GetService<IGit>() 
-            ?? throw new InvalidOperationException("Cannot get service of type 'IGit'.");
         private string WorkingDir { get; } = GetMergeBaseShaFixture.WorkingDir;
 
         public ValueTask InitializeAsync()
@@ -171,11 +156,11 @@ public sealed class GitTests
         [Fact]
         public async Task GetsShaSuccessfully()
         {
-            await _subject.CloneRepoAsync(
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: GetMergeBaseShaFixture.RepoUrl,
                 workingDir: WorkingDir);
             
-            string result = await _subject.GetMergeBaseSha(
+            string result = await classFixture.Subject.GetMergeBaseSha(
                 baseSha: GetMergeBaseShaFixture.BaseSha, 
                 headSha: GetMergeBaseShaFixture.HeadSha,
                 workingDir: WorkingDir);
@@ -186,11 +171,11 @@ public sealed class GitTests
         [Fact]
         public async Task FailsToGetSha()
         {
-            await _subject.CloneRepoAsync(
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: GetMergeBaseShaFixture.RepoUrl,
                 WorkingDir);
             
-            Task<string> result = _subject.GetMergeBaseSha(
+            Task<string> result = classFixture.Subject.GetMergeBaseSha(
                 baseSha: GetMergeBaseShaFixture.BaseSha, 
                 headSha: GetMergeBaseShaFixture.InvalidSha,
                 WorkingDir);
@@ -199,16 +184,14 @@ public sealed class GitTests
         }
     }
     
-    public sealed class GetAmountOfParents(AssemblyFixture assemblyFixture)
+    public sealed class GetAmountOfParents(GetAmountOfParentsFixture classFixture)
         : IAsyncLifetime, IClassFixture<GetAmountOfParentsFixture>
     {
-        private readonly IGit _subject = assemblyFixture.Services.GetService<IGit>() 
-            ?? throw new InvalidOperationException("Cannot get service of type 'IGit'.");
         private string WorkingDir { get; } = GetAmountOfParentsFixture.WorkingDir;
     
         public async ValueTask InitializeAsync()
         {
-            await _subject.CloneRepoAsync(
+            await classFixture.Subject.CloneRepoAsync(
                 cloneUrl: AssemblyFixture.RepoUrl,
                 workingDir: WorkingDir);
         }
@@ -224,7 +207,7 @@ public sealed class GitTests
         [Fact]
         public async Task GetsAmountOfParentsSuccessfully()
         {
-            uint parents = await _subject.GetAmountOfParents(
+            uint parents = await classFixture.Subject.GetAmountOfParents(
                 GetAmountOfParentsFixture.Sha, WorkingDir);
             
             Assert.Equal(GetAmountOfParentsFixture.ExpectedAmount, parents);
@@ -233,7 +216,7 @@ public sealed class GitTests
         [Fact]
         public async Task FailsOnNonZeroExitCode()
         {
-            Task<uint> result = _subject.GetAmountOfParents(GetAmountOfParentsFixture.InvalidSha, WorkingDir);
+            Task<uint> result = classFixture.Subject.GetAmountOfParents(GetAmountOfParentsFixture.InvalidSha, WorkingDir);
             
             await Assert.ThrowsAsync<GitCommandException>(async () => await result);
         }
@@ -241,7 +224,7 @@ public sealed class GitTests
         [Fact]
         public async Task ReturnsZero_OnEmptyString()
         {
-            uint result = await _subject.GetAmountOfParents(AssemblyFixture.BaseSha, WorkingDir);
+            uint result = await classFixture.Subject.GetAmountOfParents(AssemblyFixture.BaseSha, WorkingDir);
             const uint expected = 0;
             
             Assert.Equal(expected, result);

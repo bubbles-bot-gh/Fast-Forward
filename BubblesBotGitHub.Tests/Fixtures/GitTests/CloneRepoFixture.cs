@@ -1,3 +1,5 @@
+using BubblesBotGitHub.FastForward.Core.Git;
+using BubblesBotGitHub.FastForward.Implements.Git;
 using JetBrains.Annotations;
 
 namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
@@ -5,6 +7,7 @@ namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
 [UsedImplicitly]
 public class CloneRepoFixture : IAsyncLifetime
 {
+    public readonly IGit Subject = new Git(new ProcessOutFactory());
     private static readonly string FixtureWorkingDir = $"{AssemblyFixture.GitTestsDir}/CloneRepo";
     public static string WorkingDir => $"{FixtureWorkingDir}/{Guid.NewGuid()}";
     public static string RepoUrl => AssemblyFixture.RepoUrl;
@@ -17,13 +20,4 @@ public class CloneRepoFixture : IAsyncLifetime
         
         return ValueTask.CompletedTask;
     }
-    
-    public static TheoryData<string, string> TestData =>
-    [
-        new TheoryDataRow<string, string>(RepoUrl, WorkingDir)
-            .WithTestDisplayName("WithRepoAndWorkingDirectory"),
-        
-        new TheoryDataRow<string, string>(RepoUrl, "")
-            .WithTestDisplayName("WithDefaultWorkingDirectory")
-    ];
 }

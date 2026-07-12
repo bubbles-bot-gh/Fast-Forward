@@ -1,9 +1,10 @@
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller.Responses;
+using Octokit;
 
 namespace BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 
-internal sealed class GitHubApiCaller : IGitHubApiCaller
+internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiCaller
 {
     public async Task<IGhApiResponsePr> GetPullRequest(string repoOwner, string repoName, uint prNumber)
     {
