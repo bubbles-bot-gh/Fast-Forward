@@ -78,32 +78,80 @@ public sealed class GitHubApiCallerTests
                     client.PullRequest.Get(
                         classFixture.Owner,
                         classFixture.Name,
-                        (int)classFixture.PrNumber))
-                .ReturnsAsync(new PullRequest());
+                        (int)classFixture.SuccessExpected.Number))
+                .ReturnsAsync(classFixture.SuccessExpected);
             
             IGitHubApiCaller subject = classFixture.GetSubject(classFixture.MockOctokitClient.Object);
             PullRequest result = await subject
-                .GetPullRequest(classFixture.Owner, classFixture.Name, classFixture.PrNumber);
+                .GetPullRequest(classFixture.Owner, classFixture.Name, (uint)classFixture.SuccessExpected.Number);
             
-            Assert.Equal((int)classFixture.PrNumber, result.Number);
+            Assert.Equal(classFixture.SuccessExpected.Number, result.Number);
         }
 
         [Fact]
         public async Task FailsToGetPullRequest()
         {
             classFixture.MockOctokitClient
-                .Setup(client => 
+                .Setup(client =>
                     client.PullRequest.Get(
                         classFixture.Owner,
                         classFixture.Name,
                         0))
-                .ReturnsAsync(new PullRequest());
+                .ThrowsAsync(classFixture.NotFoundException);
             
             IGitHubApiCaller subject = classFixture.GetSubject(classFixture.MockOctokitClient.Object);
-            PullRequest result = await subject
-                .GetPullRequest(classFixture.Owner, classFixture.Name, 0);
             
-            Assert.Equal(0, result.Number);
+            await Assert.ThrowsAsync<NotFoundException>(() => 
+                subject.GetPullRequest(classFixture.Owner, classFixture.Name, 0));
+        }
+    }
+
+    public class GetBaseHeadComparison(GetBaseHeadComparisonFixture classFixture) :
+        IClassFixture<GetBaseHeadComparisonFixture>
+    {
+        [Fact]
+        public async Task SuccessfullyGetsBaseHeadComparison()
+        {
+            classFixture.MockOctokitClient
+                .Setup(client =>
+                    client.Repository.Commit.Compare(
+                        classFixture.Owner,
+                        classFixture.Name,
+                        classFixture.BaseSha,
+                        classFixture.HeadLabel))
+                .ReturnsAsync(classFixture.Expected);
+            
+            IGitHubApiCaller subject = classFixture.GetSubject(classFixture.MockOctokitClient.Object);
+            CompareResult result = await subject
+                .GetBaseHeadComparison(
+                    classFixture.Owner,
+                    classFixture.Name,
+                    classFixture.BaseSha,
+                    classFixture.HeadLabel);
+
+            Assert.Equal(classFixture.Expected.Status, result.Status);
+        }
+
+        [Fact]
+        public async Task FailsToGetBaseHeadComparison()
+        {
+            classFixture.MockOctokitClient
+                .Setup(client =>
+                    client.Repository.Commit.Compare(
+                        classFixture.Owner,
+                        classFixture.Name,
+                        classFixture.BaseSha,
+                        classFixture.HeadLabel))
+                .ThrowsAsync(classFixture.NotFoundException);
+            
+            IGitHubApiCaller subject = classFixture.GetSubject(classFixture.MockOctokitClient.Object);
+            
+            await Assert.ThrowsAsync<NotFoundException>(() =>
+                subject.GetBaseHeadComparison(
+                    classFixture.Owner,
+                    classFixture.Name,
+                    classFixture.BaseSha,
+                    classFixture.HeadLabel));
         }
     }
 }
