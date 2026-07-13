@@ -11,12 +11,15 @@ internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiC
         return await octokitClient.PullRequest.Get(owner, name, (int)prNumber);
     }
 
-    public async Task<IGhApiResponseCompare> GetBaseHeadComparison(string repoOwner, string repoName, string baseSha, string headLabel)
+    public async Task<CompareResult> GetBaseHeadComparison(string owner,
+        string name,
+        string baseSha,
+        string headLabel)
     {
-        throw new NotImplementedException();
+        return await octokitClient.Repository.Commit.Compare(owner, name, baseSha, headLabel);
     }
 
-    public async Task<IGhApiResponseCollaborator> GetCollaborator(string repoOwner, string repoName, string user)
+    public async Task<IGhApiResponseCollaborator> GetCollaborator(string owner, string name, string user)
     {
         throw new NotImplementedException();
     }
@@ -26,12 +29,12 @@ internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiC
         throw new NotImplementedException();
     }
 
-    public async Task<IGhApiResponseCommit> GetCommit(string repoOwner, string repoName, string sha)
+    public async Task<IGhApiResponseCommit> GetCommit(string owner, string name, string sha)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<string> GetNodeId(string repoOwner, string qualifiedName)
+    public async Task<string> GetNodeId(string owner, string qualifiedName)
     {
         throw new NotImplementedException();
     }
