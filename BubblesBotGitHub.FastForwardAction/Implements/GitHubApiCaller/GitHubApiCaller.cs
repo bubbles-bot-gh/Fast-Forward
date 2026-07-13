@@ -6,9 +6,9 @@ namespace BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 
 internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiCaller
 {
-    public async Task<IGhApiResponsePr> GetPullRequest(string repoOwner, string repoName, uint prNumber)
+    public async Task<PullRequest> GetPullRequest(string owner, string name, uint prNumber)
     {
-        throw new NotImplementedException();
+        return await octokitClient.PullRequest.Get(owner, name, (int)prNumber);
     }
 
     public async Task<IGhApiResponseCompare> GetBaseHeadComparison(string repoOwner, string repoName, string baseSha, string headLabel)
