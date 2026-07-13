@@ -1,10 +1,11 @@
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller.Responses;
+using Octokit;
 
 namespace BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 
 internal interface IGitHubApiCaller
 {
-    public Task<IGhApiResponsePr> GetPullRequest(string repoOwner, string repoName, uint prNumber);
+    public Task<PullRequest> GetPullRequest(string owner, string name, uint prNumber);
 
     public Task<IGhApiResponseCompare> GetBaseHeadComparison(string repoOwner,
         string repoName,
