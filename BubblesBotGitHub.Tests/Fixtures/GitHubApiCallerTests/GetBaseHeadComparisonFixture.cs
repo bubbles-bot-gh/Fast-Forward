@@ -1,20 +1,19 @@
 using System.Net;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
+using JetBrains.Annotations;
 using Moq;
 using Octokit;
 
 namespace BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
 
-public class GetBaseHeadComparisonFixture
+[UsedImplicitly]
+public sealed class GetBaseHeadComparisonFixture
 {
-    public readonly string Owner = "bubbles-bot-gh";
-    public readonly string Name = "fast-forward";
-    public readonly string BaseSha = "abc123";
-    public readonly string HeadLabel = "tests/some-head-label";
+    public const string Owner = "bubbles-bot-gh";
+    public const string Name = "fast-forward";
+    public const string BaseSha = "abc123";
+    public const string HeadLabel = "tests/some-head-label";
     public readonly Mock<IGitHubClient> MockOctokitClient = new(MockBehavior.Strict);
-    internal IGitHubApiCaller GetSubject(IGitHubClient client) => new GitHubApiCaller(client);
-    public CompareResult Expected= new(
+    public readonly CompareResult SuccessExpected= new(
         url: "",
         htmlUrl: "",
         permalinkUrl: "",

@@ -1,6 +1,4 @@
 ﻿using BubblesBotGitHub.FastForward.Core.Errors;
-using BubblesBotGitHub.FastForward.Core.Git;
-using BubblesBotGitHub.FastForward.Implements.Git;
 using BubblesBotGitHub.Tests.Fixtures;
 using BubblesBotGitHub.Tests.Fixtures.GitTests;
 using JetBrains.Annotations;

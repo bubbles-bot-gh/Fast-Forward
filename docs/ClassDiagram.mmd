@@ -60,7 +60,15 @@ direction TB
   IActionInfo --* IRepoInfo : owns
   IActionInfo --* IPrInfo : owns
   
+  %% Git
   Git ..|> IGit : implements
+  Git ..> ProcessOutFactory : uses to create instance
+  
+  
+  ProcessOut ..|> IProcessOut : implements
+  ProcessOutFactory ..|> IProcessOutFactory : implements
+  ProcessOutFactory ..> ProcessOut : creates
+  
   PrInfo ..|> IPrInfo : implements
   RepoInfo ..|> IRepoInfo : implements
   EventInfo ..|> IEventInfo : implements
@@ -74,14 +82,24 @@ direction TB
     
     namespace Git {
       class IGit {
-        +void CloneRepoAsync(string cloneUrl, string workingDir)
-        +void Log(string workingDir)
-        +string GetMergeBaseSha(string mainHeadSha, string currentHeadSha)
-        +uint GetParentsCount(string sha)
+        +Task CloneRepoAsync(string cloneUrl, string workingDir)
+        +Task<string> Log(string exclude, string baseSha, string headSha, string workingDir)
+        +Task<string> GetMergeBaseSha(string baseSha, string headSha, string workingDir)
+        +Task<uint> GetAmountOfParents(string sha, string workingDir)
+      }
+      
+      class IProcessOut {
+        +int ExitCode
+        +string StdOut
+        +string StdErr
+      }
+      
+      class IProcessOutFactory {
+        +IProcessOut Create(int exitCode, string stdOut, string stdErr)
       }
     }
     
-    namespace ActionInfoFactory {
+    namespace ActionInfo {
       class IActionInfoFactory {
         +IActionInfo Create()$
       }
@@ -134,13 +152,12 @@ direction TB
     
     namespace GitHubApiCaller {
       class IGitHubApiCaller {
-        +Task~IGqlResponsePr~ GetPullRequest(string repoOwner, string repoName, uint prNumber)
-        +Task~IApiResponseCompare~ GetBaseHeadComparison(string repoOwner, string repoName, string baseSha, string headLabel)
-        +Task~IGqlResponseCollaborator~ GetCollaborator(string repoOwner, string repoName, string user)
-        +Task PostComment(string nodeId, string comment)
-        +Task~IGqlCommit~ GetCommit(string repoOwner, string repoName, string sha)
-        +Task~string~ GetNodeId(string repoOwner, string qualifiedName)
-        +Task FastForward(string nodeId, string oid)
+        +Task~PullRequest~ GetPullRequest(string owner, string name, uint prNumber)
+        +Task~CompareResult~ GetBaseHeadComparison(string owner, string name, string baseSha, string headLabel)
+        +Task~bool~ IsCollaborator(string owner, string name, string user)
+        +Task~IssueComment~ PostComment(string owner, string name, uint issueNumber, string comment)
+        +Task~GitHubCommit~ GetCommit(string owner, string name, string sha)
+        +Task~Reference~ FastForward(string owner, string name, string baseLabel, string headSha)
       }
       
       class IGitHubApiCallerFactory {
@@ -172,9 +189,15 @@ direction TB
         -string RunProcessAsync(string fileName, IEnumerable~string~ args, string workingDir)
         -void DeleteRecursive(string path)
       }
+      
+      class ProcessOut {
+        ~ProcessOut(int exitCode, string stdOut, string stdErr)
+      }
+      
+      class ProcessOutFactory {}
     }
    
-    namespace ActionInfoFactory {
+    namespace ActionInfo {
       class ActionInfoFactory {
         -EventInfo createEventInfo()
         -RepoInfo createRepoInfo()
@@ -208,7 +231,7 @@ direction TB
       }
       
       class GitHubApiCallerFactory {
-        +GitHubApiCallerFactory(HttpClient httpClient)
+        ~GitHubApiCallerFactory(HttpClient httpClient)
         +IGitHubApiCaller Create()
         -string GetOidcToken()
         -string GetInstallationToken(string oidcToken)
