@@ -6,12 +6,12 @@ using Octokit;
 namespace BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
 
 [UsedImplicitly]
-public sealed class GetPullRequestFixture
+public sealed class IsCollaboratorFixture
 {
     public const string Owner = "bubbles-bot-gh";
     public const string Name = "fast-forward";
+    public const string User = "luneisolei";
     public readonly Mock<IGitHubClient> MockOctokitClient = new(MockBehavior.Strict);
-    public readonly PullRequest SuccessExpected = new(1);
-    public const uint FailedPrNumber = 0;
+    public const bool SuccessExpected = true;
     public readonly NotFoundException NotFoundException = new("Not Found", HttpStatusCode.NotFound);
 }

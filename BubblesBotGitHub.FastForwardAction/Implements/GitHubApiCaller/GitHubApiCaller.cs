@@ -1,5 +1,4 @@
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller.Responses;
 using Octokit;
 
 namespace BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
@@ -19,28 +18,25 @@ internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiC
         return await octokitClient.Repository.Commit.Compare(owner, name, baseSha, headLabel);
     }
 
-    public async Task<IGhApiResponseCollaborator> GetCollaborator(string owner, string name, string user)
+    public async Task<bool> IsCollaborator(string owner, string name, string user)
     {
-        throw new NotImplementedException();
+        return await octokitClient.Repository.Collaborator.IsCollaborator(owner, name, user);
     }
 
-    public async Task PostComment(string nodeId, string comment)
+    public async Task<IssueComment> PostComment(string owner, string name, uint issueNumber, string comment)
     {
-        throw new NotImplementedException();
+        return await octokitClient.Issue.Comment.Create(owner, name, issueNumber, comment);
     }
 
-    public async Task<IGhApiResponseCommit> GetCommit(string owner, string name, string sha)
+    public async Task<GitHubCommit> GetCommit(string owner, string name, string sha)
     {
-        throw new NotImplementedException();
+        return await octokitClient.Repository.Commit.Get(owner, name, sha);
     }
 
-    public async Task<string> GetNodeId(string owner, string qualifiedName)
+    public async Task<Reference> FastForward(string owner, string name, string baseLabel, string headSha)
     {
-        throw new NotImplementedException();
-    }
-
-    public async Task FastForward(string nodeId, string oid)
-    {
-        throw new NotImplementedException();
+        ReferenceUpdate refUpdate = new(headSha, force: false);
+        
+        return await octokitClient.Git.Reference.Update(owner, name, baseLabel, refUpdate);
     }
 }
