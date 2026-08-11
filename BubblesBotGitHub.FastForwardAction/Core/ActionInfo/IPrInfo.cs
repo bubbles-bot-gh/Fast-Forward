@@ -1,10 +1,11 @@
+using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
 internal interface IPrInfo
 {
-    Task FinishInitialization(IApiCaller apiCaller, WebhookEvent webhookEvent, ActionEventType eventType);
+    Task FinishInitialization(IGitHubApiCaller gitHubApiCaller, WebhookEvent webhookEvent, ActionEventType eventType);
     string BaseRef { get; }
     string BaseSha { get; }
     string HeadRef { get; }

@@ -110,7 +110,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             PullRequest result = await subject.GetPullRequest(owner, name, (uint)prNumber);
             
             // Verify results
@@ -134,7 +134,7 @@ public sealed class GitHubApiCallerTests
                 .ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
@@ -180,7 +180,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             CompareResult result = await subject.GetBaseHeadComparison(owner, name, baseSha, headLabel);
 
             // Verify results
@@ -205,7 +205,7 @@ public sealed class GitHubApiCallerTests
                 .ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() =>
@@ -249,7 +249,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
 
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             bool result = await subject.IsCollaborator(owner, name, user);
 
             // Verify results
@@ -272,7 +272,7 @@ public sealed class GitHubApiCallerTests
                 .ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => subject.IsCollaborator(owner, name, user));
@@ -314,7 +314,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             IssueComment result = await subject.PostComment(owner, name, issueNumber, expected.Body);
 
             // Verify results
@@ -337,7 +337,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
@@ -380,7 +380,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             GitHubCommit result = await subject.GetCommit(owner, name, sha);
             
             // Verify results
@@ -401,7 +401,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => subject.GetCommit(owner, name, sha));
@@ -451,7 +451,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = assemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
             Reference result = await subject.FastForward(owner, name, baseLabel, headSha);
             
             // Verify results
