@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionTests;
 
-public static class ServiceCollectionExtensionsFixture
+public static class ActionOptionsFixture
 {
     public const string IsAutoMergeEnvName = "INPUT_AUTO_MERGE";
     public const string CustomCommandEnvName = "INPUT_CUSTOM_COMMAND";
