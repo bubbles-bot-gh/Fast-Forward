@@ -1,13 +1,13 @@
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements;
-using BubblesBotGitHub.Tests.Fixtures;
-using BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionTests;
+using BubblesBotGitHub.Tests.Unit.Fixtures;
+using BubblesBotGitHub.Tests.Unit.Fixtures.ServiceCollectionExtensionTests;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace BubblesBotGitHub.Tests.Unit;
+namespace BubblesBotGitHub.Tests.Unit.Tests;
 
 [UsedImplicitly]
 public sealed class ServiceCollectionExtensionsTests

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using BubblesBotGitHub.FastForward.Core.Git;
 using BubblesBotGitHub.FastForward.Implements.Git;
 
-namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
+namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 
 public class LogFixture : IAsyncLifetime
 {

@@ -1,14 +1,14 @@
 using System.Linq.Expressions;
 using System.Net;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.Tests.Fixtures;
-using BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
+using BubblesBotGitHub.Tests.Unit.Fixtures;
+using BubblesBotGitHub.Tests.Unit.Fixtures.GitHubApiCallerTests;
 using JetBrains.Annotations;
 using Moq;
 using Moq.Protected;
 using Octokit;
 
-namespace BubblesBotGitHub.Tests.Unit;
+namespace BubblesBotGitHub.Tests.Unit.Tests;
 
 [UsedImplicitly]
 public sealed class GitHubApiCallerTests

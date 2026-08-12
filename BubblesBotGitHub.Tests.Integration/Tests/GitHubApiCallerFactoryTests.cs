@@ -9,20 +9,20 @@ namespace BubblesBotGitHub.Tests.Integration.Tests;
 [Collection("GitHubApiCallerFactoryIntegrationTests")]
 public sealed class GitHubApiCallerFactoryTests(GetOidcTokenFixture classFixture) : IClassFixture<GetOidcTokenFixture>, IAsyncLifetime
 {
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         Environment.SetEnvironmentVariable(GetOidcTokenFixture.RequestTokenEnvName, GetOidcTokenFixture.RequestToken);
         Environment.SetEnvironmentVariable(GetOidcTokenFixture.RequestUrlEnvName, GetOidcTokenFixture.RequestUrl);
             
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
         
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         Environment.SetEnvironmentVariable(GetOidcTokenFixture.RequestTokenEnvName, null);
         Environment.SetEnvironmentVariable(GetOidcTokenFixture.RequestUrlEnvName, null);
             
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]

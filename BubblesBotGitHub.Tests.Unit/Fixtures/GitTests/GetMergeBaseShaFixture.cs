@@ -2,7 +2,7 @@ using BubblesBotGitHub.FastForward.Core.Git;
 using BubblesBotGitHub.FastForward.Implements.Git;
 using JetBrains.Annotations;
 
-namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
+namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 
 [UsedImplicitly]
 public class GetMergeBaseShaFixture

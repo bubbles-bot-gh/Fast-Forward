@@ -1,4 +1,4 @@
-namespace BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionTests;
+namespace BubblesBotGitHub.Tests.Unit.Fixtures.ServiceCollectionExtensionTests;
 
 public static class ActionOptionsFixture
 {

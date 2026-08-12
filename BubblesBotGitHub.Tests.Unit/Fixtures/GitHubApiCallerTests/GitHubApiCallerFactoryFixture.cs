@@ -3,7 +3,7 @@ using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 using JetBrains.Annotations;
 using Moq;
 
-namespace BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
+namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitHubApiCallerTests;
 
 [UsedImplicitly]
 public sealed class GitHubApiCallerFactoryFixture

@@ -1,6 +1,6 @@
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-namespace BubblesBotGitHub.FastForward.Implements;
+namespace BubblesBotGitHub.FastForward.Implements.ActionInfo;
 
 internal record ActionOptions : IActionOptions
 {    
