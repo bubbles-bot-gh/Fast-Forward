@@ -12,5 +12,5 @@ riderModule.iml
 .idea/**/forwardedPorts.xml
 
 BubblesBotGitHub.sln.DotSettings.user
-BubblesBotGitHub.Tests/Tools/CoverageReport/
+CoverageReport/
 node_modules/
