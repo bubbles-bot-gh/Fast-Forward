@@ -1,6 +1,6 @@
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
-using BubblesBotGitHub.Tests.Fixtures;
+using BubblesBotGitHub.Tests.Unit.Fixtures;
 using Octokit;
 using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.PullRequest;
@@ -12,7 +12,7 @@ using Repository = Octokit.Webhooks.Models.Repository;
 using User = Octokit.Webhooks.Models.User;
 
 [assembly: AssemblyFixture(typeof(AssemblyFixture))]
-namespace BubblesBotGitHub.Tests.Fixtures;
+namespace BubblesBotGitHub.Tests.Unit.Fixtures;
 
 public class AssemblyFixture
 {
