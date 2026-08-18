@@ -6,24 +6,26 @@ using Octokit.Webhooks.Events.PullRequest;
 
 namespace BubblesBotGitHub.FastForward.Implements.ActionInfo;
 
-internal class EventInfo(WebhookEvent @event, IActionOptions opts, IGitHubApiCaller gitHubApiCaller) : IEventInfo
+internal sealed class EventInfo : IEventInfo
 {
     public bool ShouldExit { get; set; } = false;
-    public Task<bool> UserHasPerms => gitHubApiCaller.IsCollaborator("", "", "");
     public bool IsPossible { get; set; } = false;
-    public string CommentBody => 
-        (@event as PullRequestOpenedEvent)?.PullRequest.Body
-        ?? (@event as IssueCommentCreatedEvent)?.Comment.Body 
-        ?? string.Empty;
-    public bool CommandInvoked => CommentBody.Trim() == opts.CustomCommand;
-    public string User => @event.Sender?.Name ?? string.Empty;
+    public bool CommandInvoked { get; }
+    public Task<bool> UserHasPerms { get; }
+    public string User { get; }
+    public string CommentBody { get; }
 
-    // public EventInfo(WebhookEvent @event, IActionOptions opts, IGitHubApiCaller githubApiCaller)
-    // {
-    //     GitHubApiCaller = githubApiCaller;
-    //     IsPossible = false;
-    //     CommentBody = (@event as PullRequestOpenedEvent)?.PullRequest.Body ?? string.Empty;
-    //     CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
-    //     User = @event.Sender?.Name ?? string.Empty;
-    // }
+    public EventInfo(
+        WebhookEvent webhookEvent, 
+        IActionOptions opts,
+        IRepoInfo repoInfo,
+        IGitHubApiCaller gitHubApiCaller)
+    {
+        CommentBody = (webhookEvent as PullRequestOpenedEvent)?.PullRequest.Body
+            ?? (webhookEvent as IssueCommentCreatedEvent)?.Comment.Body 
+            ?? string.Empty;
+        CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
+        User = webhookEvent.Sender?.Name ?? string.Empty;
+        UserHasPerms = gitHubApiCaller.IsCollaborator(repoInfo.Owner, repoInfo.Name, User);
+    }
 }
