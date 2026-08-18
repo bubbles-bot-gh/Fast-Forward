@@ -2,7 +2,6 @@ using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements;
 using BubblesBotGitHub.Tests.Unit.Fixtures;
-using BubblesBotGitHub.Tests.Unit.Fixtures.ServiceCollectionExtensionTests;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -76,9 +75,9 @@ public sealed class ServiceCollectionExtensionsTests
         public void SucceedsWhenAddingIActionOptions()
         {
             // Set env vars
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.IsAutoMergeEnvName, ActionOptionsFixture.IsAutoMerge.ToString().ToLower());
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, ActionOptionsFixture.CustomCommand);
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, ActionOptionsFixture.PostComment);
+            Environment.SetEnvironmentVariable(ActionOptionsFixture.AutoMergeEnvName, AssemblyFixture.AutoMerge.ToString().ToLower());
+            Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, AssemblyFixture.CustomCommand);
+            Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, AssemblyFixture.PostComment);
         
             // Set up service container
             IServiceProvider services = new ServiceCollection()
@@ -87,11 +86,11 @@ public sealed class ServiceCollectionExtensionsTests
         
             IActionOptions actionOptions = services.GetRequiredService<IActionOptions>();
 
-            Assert.Equal(ActionOptionsFixture.IsAutoMerge, actionOptions.IsAutoMerge);
-            Assert.Equal(ActionOptionsFixture.CustomCommand, actionOptions.CustomCommand);
-            Assert.Equal(ActionOptionsFixture.PostComment, actionOptions.PostComment);
+            Assert.Equal(AssemblyFixture.AutoMerge, actionOptions.IsAutoMerge);
+            Assert.Equal(AssemblyFixture.CustomCommand, actionOptions.CustomCommand);
+            Assert.Equal(AssemblyFixture.PostComment, actionOptions.PostComment);
 
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.IsAutoMergeEnvName, null);
+            Environment.SetEnvironmentVariable(ActionOptionsFixture.AutoMergeEnvName, null);
             Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, null);
             Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, null);
         }
