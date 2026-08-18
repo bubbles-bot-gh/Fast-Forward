@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BubblesBotGitHub.Tests.Unit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BubblesBotGitHub.Tests.Integration", "BubblesBotGitHub.Tests.Integration\BubblesBotGitHub.Tests.Integration.csproj", "{57391A7C-167D-4279-9B5D-E545A1EE5A7D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder1", "SolutionFolder1", "{6F942A70-82EC-4E28-BB9C-8140615E50D1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
