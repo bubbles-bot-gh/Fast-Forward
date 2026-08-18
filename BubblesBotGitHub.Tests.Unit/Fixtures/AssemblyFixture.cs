@@ -52,6 +52,7 @@ public class AssemblyFixture
         {
             PullRequest = new PullRequest
             {
+                Body = "some comment body",
                 Url = "https://github.com/bubbles-bot-gh/fast-forward",
                 NodeId = "1",
                 HtmlUrl = "https://github.com/bubbles-bot-gh/fast-forward",
