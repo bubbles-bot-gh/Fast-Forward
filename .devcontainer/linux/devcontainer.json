@@ -3,8 +3,8 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
-    "initializeCommand": "sh .devcontainer/se-linux-podman/export-gpg-keys.sh ${localWorkspaceFolder}",
-    "postCreateCommand": "sh .devcontainer/se-linux-podman/post-create-command.sh ${localWorkspaceFolderBasename}",
+    "initializeCommand": "sh .devcontainer/linux/export-gpg-keys.sh ${localWorkspaceFolder}",
+    "postCreateCommand": "sh .devcontainer/linux/post-create-command.sh ${localWorkspaceFolderBasename}",
     "forwardPorts": [63341],
     "remoteUser": "vscode",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
