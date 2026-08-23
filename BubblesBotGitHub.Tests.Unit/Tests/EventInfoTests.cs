@@ -1,3 +1,4 @@
+using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements;
@@ -13,28 +14,12 @@ public sealed class EventInfoTests : IAsyncLifetime
     
     public ValueTask InitializeAsync()
     {
-        // Create mock GitHubApiCaller
-        Mock<IGitHubApiCallerFactory> mockFactory = new();
-        mockFactory
-            .Setup(factory => factory.Create())
-            .Returns(Mock.Of<IGitHubApiCaller>());
-        
-        // Create mock RepoInfo
-        Mock<IRepoInfo> mockRepoInfo = new();
-        mockRepoInfo
-            .SetupGet(repoInfo => repoInfo.Owner)
-            .Returns(EventInfoFixture.Owner);
-        
-        mockRepoInfo
-            .SetupGet(repoInfo => repoInfo.Name)
-            .Returns(EventInfoFixture.Name);
-
-        mockRepoInfo
-            .SetupGet(repoInfo => repoInfo.CloneUrl)
-            .Returns(EventInfoFixture.CloneUrl);
+        // Create mocks
+        Mock<IGitHubApiCallerFactory> mockFactory = AssemblyFixture.CreateMockGitHubApiCallerFactory();
+        Mock<IRepoInfo> mockRepoInfo = AssemblyFixture.CreateMockRepoInfo();
         
         IServiceProvider serviceProvider = new ServiceCollection()
-            .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+            .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
             .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
             .AddScoped<IRepoInfo>(_ => mockRepoInfo.Object)
             .BuildServiceProvider();
@@ -52,6 +37,6 @@ public sealed class EventInfoTests : IAsyncLifetime
     [Fact]
     public void CommentBodyExtractionSucceeds()
     {
-        Assert.Equal(_eventInfo.CommentBody, AssemblyFixture.CreatePullRequestOpenedEvent().PullRequest.Body);
+        Assert.Equal(_eventInfo.CommentBody, AssemblyFixture.GetPullRequestOpenedEvent().PullRequest.Body);
     }
 }
