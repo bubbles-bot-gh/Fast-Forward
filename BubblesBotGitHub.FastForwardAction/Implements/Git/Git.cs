@@ -92,7 +92,7 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
             $"git log --pretty=oneline --graph {exclude} {baseSha} {headSha}", result.StdErr) : result.StdOut;
     }
 
-    public async Task<string> GetMergeBaseSha(string baseSha, string headSha, string workingDir)
+    public async Task<string> GetMergeBaseSha(string baseSha, string headSha, string workingDir = "/tmp")
     {
         IProcessOut result = await RunProcessAsync("git", ["merge-base", baseSha, headSha], workingDir);
         
@@ -100,7 +100,7 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
             $"git merge-base {baseSha} {headSha}" ,result.StdErr) : result.StdOut.Trim();
     }
 
-    public async Task<uint> GetAmountOfParents(string sha, string workingDir)
+    public async Task<uint> GetAmountOfParents(string sha, string workingDir = "/tmp")
     {
         IProcessOut result = await RunProcessAsync(
             fileName: "git", 
