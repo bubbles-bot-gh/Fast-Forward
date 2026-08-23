@@ -111,7 +111,7 @@ public sealed class GitHubApiCallerTests
             
             // Get subject with mocked object
             IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            PullRequest result = await subject.GetPullRequest(owner, name, (uint)prNumber);
+            PullRequest result = await subject.GetPullRequestAsync(owner, name, prNumber);
             
             // Verify results
             Assert.Equal(expected.Number, result.Number);
@@ -138,7 +138,7 @@ public sealed class GitHubApiCallerTests
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
-                subject.GetPullRequest(owner, name, prNumber));
+                subject.GetPullRequestAsync(owner, name, prNumber));
             
             classFixture.MockOctokitClient.Verify(mockExpr, Times.Once);
         }

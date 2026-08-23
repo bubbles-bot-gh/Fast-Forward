@@ -4,7 +4,7 @@ namespace BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 
 internal interface IGitHubApiCaller
 {
-    public Task<PullRequest> GetPullRequest(string owner, string name, uint prNumber);
+    public Task<PullRequest> GetPullRequestAsync(string owner, string name, long prNumber);
     public Task<CompareResult> GetBaseHeadComparison(string owner,
         string name,
         string baseSha,
