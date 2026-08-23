@@ -1,3 +1,4 @@
+using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements;
@@ -23,7 +24,7 @@ public sealed class ServiceCollectionExtensionsTests
                 .Returns(Mock.Of<IGitHubApiCaller>());
             
             IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
                 .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
                 .BuildServiceProvider();
         
@@ -41,7 +42,7 @@ public sealed class ServiceCollectionExtensionsTests
                 .Returns(Mock.Of<IGitHubApiCaller>());
             
             IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
                 .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
                 .BuildServiceProvider();
             
@@ -62,7 +63,7 @@ public sealed class ServiceCollectionExtensionsTests
                 .Returns(Mock.Of<IGitHubApiCaller>());
             
             IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
                 .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
                 .BuildServiceProvider();
             
@@ -81,7 +82,7 @@ public sealed class ServiceCollectionExtensionsTests
         
             // Set up service container
             IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
                 .BuildServiceProvider();
         
             IActionOptions actionOptions = services.GetRequiredService<IActionOptions>();

@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core;
 
-internal enum ActionEventType
+public enum ActionEventType
 {
     PullRequestOpened,
     IssueCommentCreated,

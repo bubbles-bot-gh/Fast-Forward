@@ -1,6 +1,9 @@
+using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
+using BubblesBotGitHub.FastForward.Core.Git;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using BubblesBotGitHub.FastForward.Implements.ActionInfo;
+using BubblesBotGitHub.FastForward.Implements.Git;
 using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 using Microsoft.Extensions.DependencyInjection;
 using Octokit.Webhooks;
@@ -11,12 +14,14 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddAppServices(WebhookEvent webhookEvent)
+        public IServiceCollection AddAppServices(WebhookEvent webhookEvent, ActionEventType eventType)
         {
             return serviceCollection
-                .AddScoped<IActionOptions, ActionOptions>()
+                .AddScoped<WebhookEvent>(_ => webhookEvent)
+                .AddScoped(typeof(ActionEventType), _ => eventType)
                 .AddGitHubApiCaller()
-                .AddActionInfo(webhookEvent);
+                .AddScoped<IGit, Git.Git>()
+                .AddActionInfo();
         }
         
         private IServiceCollection AddGitHubApiCaller()
@@ -24,6 +29,7 @@ public static class ServiceCollectionExtensions
             return serviceCollection
                 .AddHttpClient<IGitHubApiCallerFactory, GitHubApiCallerFactory>()
                 .Services
+                .AddScoped<IProcessOutFactory, ProcessOutFactory>()
                 .AddScoped<IGitHubApiCaller>(provider =>
                 {
                     IGitHubApiCallerFactory factory = provider.GetRequiredService<IGitHubApiCallerFactory>();
@@ -32,20 +38,19 @@ public static class ServiceCollectionExtensions
                 });
         }
 
-        private IServiceCollection AddActionInfo(WebhookEvent webhookEvent)
+        private IServiceCollection AddActionInfo()
         {
             return serviceCollection
-                .AddScoped<WebhookEvent>(_ => webhookEvent)
                 .AddScoped<IActionOptions, ActionOptions>()
                 .AddScoped<IRepoInfo, RepoInfo>()
                 .AddScoped<IEventInfo, EventInfo>()
+                .AddScoped<IPrInfo, PrInfo>()
                 .AddScoped<IActionInfoFactory, ActionInfoFactory>()
                 .AddScoped<IActionInfo>(provider =>
                 {
                     IActionInfoFactory factory = provider.GetRequiredService<IActionInfoFactory>();
-                    WebhookEvent gitHubEvent = provider.GetRequiredService<WebhookEvent>();
                     
-                    return factory.Create(gitHubEvent);
+                    return factory.Create();
                 });
         }
     }
