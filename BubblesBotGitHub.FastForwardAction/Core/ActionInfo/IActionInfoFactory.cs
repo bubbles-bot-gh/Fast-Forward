@@ -5,5 +5,5 @@ namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
 internal interface IActionInfoFactory
 {
-    IActionInfo Create(WebhookEvent webhookEvent);
+    IActionInfo Create();
 }
