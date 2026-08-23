@@ -5,7 +5,7 @@ namespace BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 
 internal sealed class GitHubApiCaller(IGitHubClient octokitClient) : IGitHubApiCaller
 {
-    public async Task<PullRequest> GetPullRequest(string owner, string name, uint prNumber)
+    public async Task<PullRequest> GetPullRequestAsync(string owner, string name, long prNumber)
     {
         return await octokitClient.PullRequest.Get(owner, name, (int)prNumber);
     }
