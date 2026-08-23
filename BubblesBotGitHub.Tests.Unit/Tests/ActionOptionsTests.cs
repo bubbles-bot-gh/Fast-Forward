@@ -1,3 +1,4 @@
+using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Implements;
 using BubblesBotGitHub.Tests.Unit.Fixtures;
@@ -37,7 +38,7 @@ public sealed class ActionOptionsTests : IAsyncLifetime
     public void SuccessfullySetsOptions()
     {
         IServiceProvider collection = new ServiceCollection()
-            .AddAppServices(AssemblyFixture.CreatePullRequestOpenedEvent())
+            .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
             .BuildServiceProvider();
 
         IActionOptions actionOptions = collection.GetRequiredService<IActionOptions>();

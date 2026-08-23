@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Implements;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,17 +21,27 @@ class Program
         string json = File.ReadAllText(eventPath);
 
         // Deserialize JSON as WebhookEvent
-        WebhookEvent gitHubEvent = eventName switch
+        (WebhookEvent gitHubEvent, ActionEventType eventType) = eventName switch
         {
-            "pull_request_opened" => JsonSerializer.Deserialize<PullRequestOpenedEvent>(json) ?? throw new JsonException(),
-            "issue_comment_created" => JsonSerializer.Deserialize<IssueCommentCreatedEvent>(json) ?? throw new JsonException(),
+            "pull_request_opened" =>
+            (
+                JsonSerializer.Deserialize<PullRequestOpenedEvent>(json) as WebhookEvent
+                    ?? throw new JsonException(),
+                ActionEventType.PullRequestOpened
+            ),
+            "issue_comment_created" =>
+            (
+                JsonSerializer.Deserialize<IssueCommentCreatedEvent>(json) as WebhookEvent
+                    ?? throw new JsonException(),
+                ActionEventType.IssueCommentCreated
+            ),
             _ => throw new NotSupportedException($"Unsupported event type: {eventName}")
         };
         
         // Build service provider
         IServiceCollection services = new ServiceCollection();
         IServiceProvider serviceProvider = services
-            .AddAppServices(gitHubEvent)
+            .AddAppServices(gitHubEvent, eventType)
             .BuildServiceProvider();
         
         // Create IActionInfo
