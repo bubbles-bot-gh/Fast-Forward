@@ -1,3 +1,4 @@
+using BubblesBotGitHub.FastForward.Core.Git;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 using Octokit.Webhooks;
 
@@ -5,19 +6,16 @@ namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
 internal interface IPrInfo
 {
-    Task FinishInitialization(IGitHubApiCaller gitHubApiCaller, WebhookEvent webhookEvent, ActionEventType eventType);
     string BaseRef { get; }
     string BaseSha { get; }
     string HeadRef { get; }
     string HeadSha { get; }
     string HeadLabel { get; }
-    string HeadOwner { get; }
-    string HeadRepo { get; }
     string MergeBaseSha { get; }
-    string MergeBaseParentsAmount { get; }
+    uint MergeBaseParentsAmount { get; }
     string PrNodeId { get; }
     string BaseNodeId { get; }
-    string HeadNodeId { get; }
-    uint IssueNumber { get; }
-    void SetEvent(WebhookEvent webhookEvent, ActionEventType eventType);
+    long IssueNumber { get; }
+    
+    Task InitializeAsync(IGit git, IGitHubApiCaller gitHubApiCaller, WebhookEvent webhookEvent, ActionEventType eventType);
 }
