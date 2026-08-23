@@ -34,13 +34,9 @@
         <None Include="Events/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Fixtures\GitTests\PullRequestOpenedEvent.json">
+        <None Update="Events\PullRequestOpenedEvent.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="Events\" />
     </ItemGroup>
     
 </Project>
