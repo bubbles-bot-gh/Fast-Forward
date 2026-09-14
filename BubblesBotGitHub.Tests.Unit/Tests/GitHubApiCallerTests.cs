@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Net;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.Tests.Unit.Fixtures;
 using BubblesBotGitHub.Tests.Unit.Fixtures.GitHubApiCallerTests;
 using JetBrains.Annotations;
 using Moq;
@@ -17,43 +16,43 @@ public sealed class GitHubApiCallerTests
         : IClassFixture<GitHubApiCallerFactoryFixture>
     {
         [Fact]
-        public void SucceedsCreation()
+        public void SucceedsCreatingInstance()
         {
-            Environment.SetEnvironmentVariable(
-                GitHubApiCallerFactoryFixture.RequestTokenEnvName, 
-                GitHubApiCallerFactoryFixture.RequestTokenEnvValue);
-            Environment.SetEnvironmentVariable(
-                GitHubApiCallerFactoryFixture.RequestUrlEnvName, 
-                GitHubApiCallerFactoryFixture.RequestUrlEnvValue);
+            Environment.SetEnvironmentVariable(classFixture.RequestTokenEnvName, classFixture.RequestTokenEnvValue);
+            Environment.SetEnvironmentVariable(classFixture.RequestUrlEnvName, classFixture.RequestUrlEnvValue);
             
             // Mock setup
-            classFixture.MockHttpHandler.Protected()
+            classFixture
+                .MockHttpHandler
+                .Protected()
                 .Setup<HttpResponseMessage>(
                     "Send",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Get 
-                        && req.RequestUri!.Host.Contains(GitHubApiCallerFactoryFixture.GitHubUserContentHost)
+                        && req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)
                     ),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(
                     new HttpResponseMessage
                     {
                         StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(GitHubApiCallerFactoryFixture.MockOidcValue)
+                        Content = new StringContent(classFixture.MockOidcValue)
                     });
 
-            classFixture.MockHttpHandler.Protected()
+            classFixture
+                .MockHttpHandler
+                .Protected()
                 .Setup<HttpResponseMessage>(
                     "Send",
                     ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
-                        && req.RequestUri!.Host.Contains(GitHubApiCallerFactoryFixture.SupabaseHost)
+                        && req.RequestUri!.Host.Contains(classFixture.SupabaseHost)
                     ),
                     ItExpr.IsAny<CancellationToken>())
                 .Returns(
                     new HttpResponseMessage
                     {
                         StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(GitHubApiCallerFactoryFixture.MockInstallationTokenValue)
+                        Content = new StringContent(classFixture.MockInstallationTokenValue)
                     });
             
             // Get subject with mocked object
@@ -66,40 +65,25 @@ public sealed class GitHubApiCallerTests
                 "Send",
                 Times.Once(),
                 ItExpr.Is<HttpRequestMessage>(req => 
-                    req.RequestUri!.Host.Contains(GitHubApiCallerFactoryFixture.GitHubUserContentHost)),
+                    req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)),
                 ItExpr.IsAny<CancellationToken>());
             
             classFixture.MockHttpHandler.Protected().Verify(
                 "Send",
                 Times.Once(),
                 ItExpr.Is<HttpRequestMessage>(req => 
-                    req.RequestUri!.Host.Contains(GitHubApiCallerFactoryFixture.SupabaseHost)),
+                    req.RequestUri!.Host.Contains(classFixture.SupabaseHost)),
                 ItExpr.IsAny<CancellationToken>());
         }
     }
     
-    public sealed class GetPullRequest(AssemblyFixture assemblyFixture, GetPullRequestFixture classFixture) : IClassFixture<GetPullRequestFixture>, IAsyncLifetime
+    public sealed class GetPullRequest(GetPullRequestFixture classFixture) : IClassFixture<GetPullRequestFixture>
     {
-        public ValueTask InitializeAsync() { return ValueTask.CompletedTask; }
-
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
-        
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = GetPullRequestFixture.Owner;
-            string name = GetPullRequestFixture.Name;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
             PullRequest expected = classFixture.SuccessExpected;
             int prNumber = classFixture.SuccessExpected.Number;
             
@@ -110,8 +94,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            PullRequest result = await subject.GetPullRequestAsync(owner, name, prNumber);
+            PullRequest result = await classFixture.Subject.GetPullRequestAsync(owner, name, prNumber);
             
             // Verify results
             Assert.Equal(expected.Number, result.Number);
@@ -121,55 +104,41 @@ public sealed class GitHubApiCallerTests
         [Fact]
         public async Task ThrowsWhenFailed()
         {
-            string owner = GetPullRequestFixture.Owner;
-            string name = GetPullRequestFixture.Name;
-            uint prNumber = GetPullRequestFixture.FailedPrNumber;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            int prNumber = classFixture.FailedPrNumber;
             
             // Mock setup
             Expression<Func<IGitHubClient, Task<PullRequest>>> mockExpr = client =>
-                client.PullRequest.Get(owner, name, (int)prNumber);
+                client.PullRequest.Get(owner, name, prNumber);
             
             classFixture.MockOctokitClient
                 .Setup(mockExpr)
                 .ThrowsAsync(classFixture.NotFoundException);
             
-            // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
-                subject.GetPullRequestAsync(owner, name, prNumber));
+                classFixture.Subject.GetPullRequestAsync(owner, name, prNumber));
             
             classFixture.MockOctokitClient.Verify(mockExpr, Times.Once);
         }
     }
 
-    public sealed class GetBaseHeadComparison(AssemblyFixture assemblyFixture, GetBaseHeadComparisonFixture classFixture) :
+    public sealed class GetBaseHeadComparison(GetBaseHeadComparisonFixture classFixture) :
         IClassFixture<GetBaseHeadComparisonFixture>, IAsyncLifetime
     {
-        public ValueTask InitializeAsync() { return ValueTask.CompletedTask; }
+        public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
-        
+        public async ValueTask DisposeAsync() => await classFixture.DisposeAsync();
+
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = GetBaseHeadComparisonFixture.Owner;
-            string name = GetBaseHeadComparisonFixture.Name;
-            string baseSha = GetBaseHeadComparisonFixture.BaseSha;
-            string headLabel = GetBaseHeadComparisonFixture.HeadLabel;
             CompareResult expected = classFixture.SuccessExpected;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            string baseSha = classFixture.BaseSha;
+            string headLabel = classFixture.HeadLabel;
             
             // Mock setup
             Expression<Func<IGitHubClient, Task<CompareResult>>> mockExpr = client =>
@@ -180,8 +149,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            CompareResult result = await subject.GetBaseHeadComparison(owner, name, baseSha, headLabel);
+            CompareResult result = await classFixture.Subject.GetBaseHeadComparison(owner, name, baseSha, headLabel);
 
             // Verify results
             Assert.Equal(expected.Status, result.Status);
@@ -191,10 +159,10 @@ public sealed class GitHubApiCallerTests
         [Fact]
         public async Task ThrowsWhenFailed()
         {
-            string owner = GetBaseHeadComparisonFixture.Owner;
-            string name = GetBaseHeadComparisonFixture.Name;
-            string baseSha = GetBaseHeadComparisonFixture.BaseSha;
-            string headLabel = GetBaseHeadComparisonFixture.HeadLabel;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            string baseSha = classFixture.BaseSha;
+            string headLabel = classFixture.HeadLabel;
             
             // Mock setup
             Expression<Func<IGitHubClient, Task<CompareResult>>> mockExpr = client => 
@@ -204,41 +172,28 @@ public sealed class GitHubApiCallerTests
                 .Setup(mockExpr)
                 .ThrowsAsync(classFixture.NotFoundException);
             
-            // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() =>
-                subject.GetBaseHeadComparison(owner, name, baseSha, headLabel));
+                classFixture.Subject.GetBaseHeadComparison(owner, name, baseSha, headLabel));
 
             classFixture.MockOctokitClient.Verify(mockExpr, Times.Once);
         }
     }
 
-    public sealed class IsCollaborator(AssemblyFixture assemblyFixture, IsCollaboratorFixture classFixture) : IClassFixture<IsCollaboratorFixture>,  IAsyncLifetime
+    public sealed class IsCollaborator(IsCollaboratorFixture classFixture) 
+        : IClassFixture<IsCollaboratorFixture>, IAsyncLifetime
     {
-        public ValueTask InitializeAsync() { return ValueTask.CompletedTask; }
+        public async ValueTask InitializeAsync() => await classFixture.InitializeAsync();
 
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
+        public async ValueTask DisposeAsync() => await classFixture.DisposeAsync();
         
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = IsCollaboratorFixture.Owner;
-            string name = IsCollaboratorFixture.Name;
-            string user = IsCollaboratorFixture.User;
-            bool expected = IsCollaboratorFixture.SuccessExpected;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            string user = classFixture.User;
+            bool expected = classFixture.SuccessExpected;
             
             // Mock setup
             Expression<Func<IGitHubClient, Task<bool>>> mockExpr = client =>
@@ -249,8 +204,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
 
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            bool result = await subject.IsCollaborator(owner, name, user);
+            bool result = await classFixture.Subject.IsCollaborator(owner, name, user);
 
             // Verify results
             Assert.Equal(expected, result);
@@ -260,9 +214,9 @@ public sealed class GitHubApiCallerTests
         [Fact]
         public async Task ThrowsWhenFailed()
         {
-            string owner  = IsCollaboratorFixture.Owner;
-            string name = IsCollaboratorFixture.Name;
-            string user = IsCollaboratorFixture.User;
+            string owner  = classFixture.Owner;
+            string name = classFixture.Name;
+            string user = classFixture.User;
             
             // Mock setup
             Expression<Func<IGitHubClient, Task<bool>>> mockExpr = client =>
@@ -272,7 +226,7 @@ public sealed class GitHubApiCallerTests
                 .ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = classFixture.Subject;
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => subject.IsCollaborator(owner, name, user));
@@ -280,29 +234,14 @@ public sealed class GitHubApiCallerTests
         }
     }
 
-    public sealed class PostComment(AssemblyFixture assemblyFixture, PostCommentFixture classFixture) : IClassFixture<PostCommentFixture>, IAsyncLifetime
+    public sealed class PostComment(PostCommentFixture classFixture) : IClassFixture<PostCommentFixture>
     {
-        public ValueTask InitializeAsync() { return ValueTask.CompletedTask; }
-
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
-
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = PostCommentFixture.Owner;
-            string name = PostCommentFixture.Name;
-            uint issueNumber = PostCommentFixture.IssueNumber;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            uint issueNumber = classFixture.IssueNumber;
             IssueComment expected = classFixture.SuccessExpected;
             
             // Mock setup
@@ -314,8 +253,7 @@ public sealed class GitHubApiCallerTests
                 .ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            IssueComment result = await subject.PostComment(owner, name, issueNumber, expected.Body);
+            IssueComment result = await classFixture.Subject.PostComment(owner, name, issueNumber, expected.Body);
 
             // Verify results
             Assert.Equal(expected, result);
@@ -325,9 +263,9 @@ public sealed class GitHubApiCallerTests
         [Fact]
         public async Task ThrowsWhenFailed()
         {
-            string owner = PostCommentFixture.Owner;
-            string name = PostCommentFixture.Name;
-            uint issueNumber = PostCommentFixture.IssueNumber;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            uint issueNumber = classFixture.IssueNumber;
             IssueComment expected = classFixture.FailureExpected;
             
             // Mock setup
@@ -337,7 +275,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ThrowsAsync(classFixture.NotFoundException);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
+            IGitHubApiCaller subject = classFixture.Subject;
             
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
@@ -347,29 +285,17 @@ public sealed class GitHubApiCallerTests
         }
     }
 
-    public sealed class GetCommit(AssemblyFixture assemblyFixture, GetCommitFixture classFixture) 
-        : IClassFixture<GetCommitFixture>, IAsyncLifetime
+    public sealed class GetCommit(GetCommitFixture classFixture) : IClassFixture<GetCommitFixture>, IAsyncLifetime
     {
-        public ValueTask InitializeAsync() { return ValueTask.CompletedTask; }
-
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
-
+        public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+        
+        public async ValueTask DisposeAsync() => await classFixture.DisposeAsync();
+        
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = GetCommitFixture.Owner;
-            string name = GetCommitFixture.Name;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
             GitHubCommit expected = classFixture.SuccessExpected;
             string sha = classFixture.SuccessExpected.Sha;
 
@@ -380,8 +306,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            GitHubCommit result = await subject.GetCommit(owner, name, sha);
+            GitHubCommit result = await classFixture.Subject.GetCommit(owner, name, sha);
             
             // Verify results
             Assert.Equal(expected, result);
@@ -391,8 +316,8 @@ public sealed class GitHubApiCallerTests
         [Fact]
         public async Task ThrowsWhenFailed()
         {
-            string owner = GetCommitFixture.Owner;
-            string name = GetCommitFixture.Name;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
             string sha = classFixture.SuccessExpected.Sha;
             
             // Mock setup
@@ -400,43 +325,23 @@ public sealed class GitHubApiCallerTests
                 client.Repository.Commit.Get(owner, name, sha);
             classFixture.MockOctokitClient.Setup(mockExpr).ThrowsAsync(classFixture.NotFoundException);
             
-            // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            
             // Verify results
-            await Assert.ThrowsAsync<NotFoundException>(() => subject.GetCommit(owner, name, sha));
+            await Assert.ThrowsAsync<NotFoundException>(() => 
+                classFixture.Subject.GetCommit(owner, name, sha));
             classFixture.MockOctokitClient.Verify(mockExpr, Times.Once);
         }
     }
 
-    public sealed class FastForward(AssemblyFixture assemblyFixture, FastForwardFixture classFixture)
-        : IClassFixture<FastForwardFixture>, IAsyncLifetime
+    public sealed class FastForward(FastForwardFixture classFixture)
+        : IClassFixture<FastForwardFixture>
     {
-        public ValueTask InitializeAsync()
-        {
-            return ValueTask.CompletedTask;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            try
-            {
-                classFixture.MockOctokitClient.Reset();
-                return ValueTask.CompletedTask;
-            }
-            catch (Exception exception)
-            {
-                return ValueTask.FromException(exception);
-            }
-        }
-
         [Fact]
         public async Task SucceedsWhenValid()
         {
-            string owner = FastForwardFixture.Owner;
-            string name = FastForwardFixture.Name;
-            string headSha = FastForwardFixture.HeadSha;
-            string baseLabel = FastForwardFixture.BaseLabel;
+            string owner = classFixture.Owner;
+            string name = classFixture.Name;
+            string headSha = classFixture.HeadSha;
+            string baseLabel = classFixture.BaseLabel;
             Reference expected = classFixture.ExpectedSuccess;
             
             // Mock setup
@@ -451,8 +356,7 @@ public sealed class GitHubApiCallerTests
             classFixture.MockOctokitClient.Setup(mockExpr).ReturnsAsync(expected);
             
             // Get subject with mocked object
-            IGitHubApiCaller subject = AssemblyFixture.CreateGitHubApiCaller(classFixture.MockOctokitClient.Object);
-            Reference result = await subject.FastForward(owner, name, baseLabel, headSha);
+            Reference result = await classFixture.Subject.FastForward(owner, name, baseLabel, headSha);
             
             // Verify results
             Assert.Equal(expected, result);

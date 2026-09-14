@@ -5,14 +5,25 @@ using JetBrains.Annotations;
 namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 
 [UsedImplicitly]
-public class GetMergeBaseShaFixture
+public class GetMergeBaseShaFixture : IAsyncLifetime
 {
-    private static readonly string FixtureWorkingDir = $"{AssemblyFixture.GitTestsDir}/GetMergeBaseSha/";
-    public static string WorkingDir => $"{FixtureWorkingDir}/{Guid.NewGuid()}";
-    public static string BaseSha => AssemblyFixture.BaseSha;
-    public static string HeadSha => AssemblyFixture.HeadSha;
-    public static string ExpectedMergeBaseSha => AssemblyFixture.BaseSha;
-    public static string InvalidSha => "1";
-    public static string RepoUrl => AssemblyFixture.RepoUrl;
+    public readonly string WorkingDir = $"{AssemblyFixture.RootWorkingDir}/GitTests/GetMergeBaseSha/";
     public readonly IGit Subject = new Git(new ProcessOutFactory());
+    public readonly string TestRepoBaseSha = AssemblyFixture.TestRepoBaseSha;
+    public readonly string TestRepoHeadSha = AssemblyFixture.TestRepoHeadSha;
+    public string ExpectedMergeTestRepoBaseSha => AssemblyFixture.TestRepoBaseSha;
+    public string InvalidSha => "1";
+    public readonly string TestRepoUrl = AssemblyFixture.TestRepoUrl;
+
+    public async ValueTask InitializeAsync()
+    {
+        await Subject.CloneRepoAsync(TestRepoUrl, WorkingDir);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Directory.Delete(path: WorkingDir, recursive: true);
+        
+        return ValueTask.CompletedTask;
+    }
 }
