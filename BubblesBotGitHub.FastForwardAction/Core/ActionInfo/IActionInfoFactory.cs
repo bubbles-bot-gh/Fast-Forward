@@ -3,7 +3,7 @@ using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-internal interface IActionInfoFactory
+public interface IActionInfoFactory
 {
-    IActionInfo Create();
+    Task<IActionInfo> Create();
 }

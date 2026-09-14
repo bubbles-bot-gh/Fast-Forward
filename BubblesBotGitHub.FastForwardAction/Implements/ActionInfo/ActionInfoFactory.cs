@@ -16,10 +16,10 @@ internal sealed class ActionInfoFactory(
     WebhookEvent webhookEvent,
     ActionEventType eventType) : IActionInfoFactory
 {
-    public IActionInfo Create()
+    public async Task<IActionInfo> Create()
     {
         ActionInfo actionInfo = new(actionOptions, repoInfo, eventInfo, prInfo);
-        actionInfo.PrInfo.InitializeAsync(git, ghCaller, webhookEvent, eventType);
+        await actionInfo.PrInfo.InitializeAsync(git, ghCaller, webhookEvent, eventType);
         
         return actionInfo;
     }

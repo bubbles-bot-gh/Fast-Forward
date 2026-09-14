@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-internal interface IRepoInfo
+public interface IRepoInfo
 {
     string Name { get; }
     string Owner { get; }

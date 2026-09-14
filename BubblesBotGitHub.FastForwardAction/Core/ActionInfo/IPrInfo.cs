@@ -4,7 +4,7 @@ using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-internal interface IPrInfo
+public interface IPrInfo
 {
     string BaseRef { get; }
     string BaseSha { get; }

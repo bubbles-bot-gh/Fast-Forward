@@ -2,7 +2,7 @@ using Octokit;
 
 namespace BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 
-internal interface IGitHubApiCaller
+public interface IGitHubApiCaller
 {
     public Task<PullRequest> GetPullRequestAsync(string owner, string name, long prNumber);
     public Task<CompareResult> GetBaseHeadComparison(string owner,

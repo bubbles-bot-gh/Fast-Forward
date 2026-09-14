@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-internal interface IActionInfo
+public interface IActionInfo
 {
     IPrInfo PrInfo { get; }
     IRepoInfo RepoInfo { get; }

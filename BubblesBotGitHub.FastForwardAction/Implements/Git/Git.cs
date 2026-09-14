@@ -74,7 +74,7 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
         if (result.ExitCode != 0) throw new GitCommandException( $"git clone {cloneUrl} .", result.StdErr);
     }
 
-    public async Task<string> Log(string exclude, string baseSha, string headSha, string workingDir)
+    public async Task<string> LogCommitGraph(string exclude, string baseSha, string headSha, string workingDir)
     {
         IProcessOut result = await RunProcessAsync(
             fileName: "git",
@@ -97,7 +97,7 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
         IProcessOut result = await RunProcessAsync("git", ["merge-base", baseSha, headSha], workingDir);
         
         return result.ExitCode != 0 ? throw new GitCommandException(
-            $"git merge-base {baseSha} {headSha}" ,result.StdErr) : result.StdOut.Trim();
+            $"git merge-base {baseSha} {headSha}", result.StdErr) : result.StdOut.Trim();
     }
 
     public async Task<uint> GetAmountOfParents(string sha, string workingDir = "/tmp")

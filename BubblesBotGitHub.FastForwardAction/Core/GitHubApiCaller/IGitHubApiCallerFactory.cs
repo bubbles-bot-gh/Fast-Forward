@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
 
-internal interface IGitHubApiCallerFactory
+public interface IGitHubApiCallerFactory
 {
     public IGitHubApiCaller Create();
 }
