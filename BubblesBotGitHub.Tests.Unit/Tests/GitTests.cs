@@ -1,5 +1,4 @@
 ﻿using BubblesBotGitHub.FastForward.Core.Errors;
-using BubblesBotGitHub.Tests.Unit.Fixtures;
 using BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 using JetBrains.Annotations;
 
@@ -8,114 +7,115 @@ namespace BubblesBotGitHub.Tests.Unit.Tests;
 [UsedImplicitly]
 public sealed class GitTests
 {
+    [Collection("CloneRepoTests")]
     public sealed class CloneRepo(CloneRepoFixture classFixture)
         : IAsyncLifetime, IClassFixture<CloneRepoFixture>
     {
-        private string WorkingDir { get; } = CloneRepoFixture.WorkingDir;
-        
         public ValueTask InitializeAsync() => ValueTask.CompletedTask;
         
         public ValueTask DisposeAsync()
         {
-            if (Directory.Exists(WorkingDir))
-                Directory.Delete(path: WorkingDir, recursive: true);
+            if (Directory.Exists(classFixture.WorkingDir))
+                Directory.Delete(path: classFixture.WorkingDir, recursive: true);
             
             return ValueTask.CompletedTask;
         }
         
         [Fact]
-        public async Task ClonesRepo_IntoWorkingDirectory_Successfully()
+        public async Task SucceedsWhenCloningRepo()
         {
-            await classFixture.Subject.CloneRepoAsync(CloneRepoFixture.RepoUrl, WorkingDir);
+            await classFixture
+                .Subject
+                .CloneRepoAsync(classFixture.TestRepoUrl, classFixture.WorkingDir);
             
-            Assert.True(Directory.Exists($"{WorkingDir}/.git"));
+            Assert.True(Directory.Exists($"{classFixture.WorkingDir}/.git"));
         }
     
         [Fact]
-        public async Task FailsOnInvalidRepo()
+        public async Task ThrowsWhenCloningRepoFails()
         {
-            Task result = classFixture.Subject.CloneRepoAsync(
-                cloneUrl: "IAmAnInvalidRepo",
-                workingDir: WorkingDir);
+            Task result = classFixture
+                .Subject
+                .CloneRepoAsync("IAmAnInvalidRepo", classFixture.WorkingDir);
             
             await Assert.ThrowsAsync<GitCommandException>(async () => await result);
         }
 
         [Fact]
-        public async Task Throws_OnWhiteSpaceUrl()
+        public async Task ThrowsWhenUrlIsEmpty()
         {
             Task result = classFixture.Subject.CloneRepoAsync(
-                cloneUrl: "",
-                workingDir: WorkingDir);
+                cloneUrl: string.Empty,
+                workingDir: classFixture.WorkingDir);
             
             await Assert.ThrowsAsync<ArgumentException>(async () => await result);
         }
 
         [Fact]
-        public async Task Throws_OnWhiteSpaceWorkingDirectory()
+        public async Task ThrowsWhenWorkingDirectoryPathIsEmpty()
         {
             Task result = classFixture.Subject.CloneRepoAsync(
-                cloneUrl: AssemblyFixture.RepoUrl,
-                workingDir: "");
+                cloneUrl: classFixture.TestRepoUrl,
+                workingDir: string.Empty);
             
             await Assert.ThrowsAsync<ArgumentException>(async () => await result);
         }
 
         [Fact]
-        public async Task RemovesDuplicateDirectory()
+        public async Task SucceedsWhenRemovingDuplicateDirectory()
         {
             // Create test file
-            string testFilePath = $"{WorkingDir}/RemovesDuplicateDirectoryTest.txt";
-            string nestedDirPath = $"{WorkingDir}/NestedDir";
+            string testFilePath = $"{classFixture.WorkingDir}/RemovesDuplicateDirectoryTest.txt";
+            string nestedDirPath = $"{classFixture.WorkingDir}/NestedDir";
             Directory.CreateDirectory(nestedDirPath);
             File.Create(testFilePath);
 
             // Clone the repo
             await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: CloneRepoFixture.RepoUrl,
-                workingDir: WorkingDir);
+                cloneUrl: classFixture.TestRepoUrl,
+                workingDir: classFixture.WorkingDir);
             
             Assert.False(Directory.Exists(testFilePath));
         }
     }
 
-    public sealed class Log(ITestOutputHelper testOutput, LogFixture classFixture)
-    : IAsyncLifetime, IClassFixture<LogFixture>
+    [Collection("LogCommitGraphTests")]
+    public sealed class LogCommitGraph(ITestOutputHelper testOutput, LogCommitGraphTestsFixture classCommitGraphTestsFixture)
+    : IAsyncLifetime, IClassFixture<LogCommitGraphTestsFixture>
     {
-        private string WorkingDir { get; } = LogFixture.WorkingDir;
         public async ValueTask InitializeAsync()
         {
-            await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: AssemblyFixture.RepoUrl,
-                workingDir: WorkingDir);
+            await classCommitGraphTestsFixture.Subject.CloneRepoAsync(
+                cloneUrl: classCommitGraphTestsFixture.TestRepoUrl,
+                workingDir: classCommitGraphTestsFixture.WorkingDir);
         }
         public ValueTask DisposeAsync()
         {
-            if (Directory.Exists(WorkingDir))
-                Directory.Delete(path: WorkingDir, recursive: true);
+            if (Directory.Exists(classCommitGraphTestsFixture.WorkingDir))
+                Directory.Delete(path: classCommitGraphTestsFixture.WorkingDir, recursive: true);
             
             return ValueTask.CompletedTask;
         }
         
         [Theory]
-        [MemberData(nameof(LogFixture.TestData), MemberType = typeof(LogFixture))]
+        [MemberData(nameof(LogCommitGraphTestsFixture.TheoryData), MemberType = typeof(LogCommitGraphTestsFixture))]
         public async Task Succeeds(
             string exclude,
             string baseSha,
             string headSha,
             string workingDir)
         {
-            testOutput.WriteLine(WorkingDir);
-            await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: AssemblyFixture.RepoUrl,
+            testOutput.WriteLine(classCommitGraphTestsFixture.WorkingDir);
+            await classCommitGraphTestsFixture.Subject.CloneRepoAsync(
+                cloneUrl: classCommitGraphTestsFixture.TestRepoUrl,
                 workingDir: workingDir);
             
-            string result = await classFixture.Subject.Log(
-                exclude: exclude,
-                baseSha: baseSha,
-                headSha: headSha,
-                workingDir: workingDir);
-            testOutput.WriteLine(result);
+            string result = await classCommitGraphTestsFixture.Subject.LogCommitGraph(
+                exclude,
+                baseSha,
+                headSha,
+                workingDir);
+
             Directory.Delete(path: workingDir, recursive: true);
             
             Assert.NotEmpty(result);
@@ -124,7 +124,7 @@ public sealed class GitTests
         [Fact]
         public async Task FailsWithInvalidSha()
         {
-            Task<string> result = classFixture.Subject.Log(
+            Task<string> result = classCommitGraphTestsFixture.Subject.LogCommitGraph(
                 exclude: "",
                 baseSha: "IAmAnInvalidSHA",
                 headSha: "IAmAnInvalidSHAToo\"",
@@ -134,88 +134,50 @@ public sealed class GitTests
         }
     }
 
+    [Collection("GetMergeBaseShaTests")]
     public sealed class GetMergeBaseSha(GetMergeBaseShaFixture classFixture)
-        : IClassFixture<GetMergeBaseShaFixture>, IAsyncLifetime
+        : IClassFixture<GetMergeBaseShaFixture>
     {
-        private string WorkingDir { get; } = GetMergeBaseShaFixture.WorkingDir;
-
-        public ValueTask InitializeAsync()
-        {
-            return ValueTask.CompletedTask;
-        }
-    
-        public ValueTask DisposeAsync()
-        {
-            if (Directory.Exists(WorkingDir))
-                Directory.Delete(path: WorkingDir, recursive: true);
-            
-            return ValueTask.CompletedTask;
-        }
-    
         [Fact]
         public async Task GetsShaSuccessfully()
         {
-            await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: GetMergeBaseShaFixture.RepoUrl,
-                workingDir: WorkingDir);
-            
             string result = await classFixture.Subject.GetMergeBaseSha(
-                baseSha: GetMergeBaseShaFixture.BaseSha, 
-                headSha: GetMergeBaseShaFixture.HeadSha,
-                workingDir: WorkingDir);
+                classFixture.TestRepoBaseSha, 
+                classFixture.TestRepoHeadSha,
+                classFixture.WorkingDir);
             
-            Assert.Equal(GetMergeBaseShaFixture.ExpectedMergeBaseSha, result);
+            Assert.Equal(classFixture.ExpectedMergeTestRepoBaseSha, result);
         }
     
         [Fact]
         public async Task FailsToGetSha()
         {
-            await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: GetMergeBaseShaFixture.RepoUrl,
-                WorkingDir);
-            
             Task<string> result = classFixture.Subject.GetMergeBaseSha(
-                baseSha: GetMergeBaseShaFixture.BaseSha, 
-                headSha: GetMergeBaseShaFixture.InvalidSha,
-                WorkingDir);
+                classFixture.TestRepoBaseSha, 
+                classFixture.InvalidSha,
+                classFixture.WorkingDir);
             
             await Assert.ThrowsAsync<GitCommandException>(async () => await result);
         }
     }
     
+    [Collection("GetAmountOfParentsTests")]
     public sealed class GetAmountOfParents(GetAmountOfParentsFixture classFixture)
-        : IAsyncLifetime, IClassFixture<GetAmountOfParentsFixture>
+        : IClassFixture<GetAmountOfParentsFixture>
     {
-        private string WorkingDir { get; } = GetAmountOfParentsFixture.WorkingDir;
-    
-        public async ValueTask InitializeAsync()
-        {
-            await classFixture.Subject.CloneRepoAsync(
-                cloneUrl: AssemblyFixture.RepoUrl,
-                workingDir: WorkingDir);
-        }
-    
-        public ValueTask DisposeAsync()
-        {
-            if (Directory.Exists(WorkingDir))
-                Directory.Delete(WorkingDir, recursive: true);
-            
-            return ValueTask.CompletedTask;
-        }
-    
         [Fact]
         public async Task GetsAmountOfParentsSuccessfully()
         {
             uint parents = await classFixture.Subject.GetAmountOfParents(
-                GetAmountOfParentsFixture.Sha, WorkingDir);
+                classFixture.TestRepoHeadSha, classFixture.WorkingDir);
             
-            Assert.Equal(GetAmountOfParentsFixture.ExpectedAmount, parents);
+            Assert.Equal(classFixture.ExpectedAmount, parents);
         }
     
         [Fact]
         public async Task FailsOnNonZeroExitCode()
         {
-            Task<uint> result = classFixture.Subject.GetAmountOfParents(GetAmountOfParentsFixture.InvalidSha, WorkingDir);
+            Task<uint> result = classFixture.Subject.GetAmountOfParents(classFixture.InvalidSha, classFixture.WorkingDir);
             
             await Assert.ThrowsAsync<GitCommandException>(async () => await result);
         }
@@ -223,7 +185,7 @@ public sealed class GitTests
         [Fact]
         public async Task ReturnsZero_OnEmptyString()
         {
-            uint result = await classFixture.Subject.GetAmountOfParents(AssemblyFixture.BaseSha, WorkingDir);
+            uint result = await classFixture.Subject.GetAmountOfParents(classFixture.TestRepoBaseSha, classFixture.WorkingDir);
             const uint expected = 0;
             
             Assert.Equal(expected, result);

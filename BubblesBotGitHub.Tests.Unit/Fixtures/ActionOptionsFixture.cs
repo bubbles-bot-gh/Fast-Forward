@@ -1,11 +1,39 @@
 using System.Diagnostics.CodeAnalysis;
+using BubblesBotGitHub.FastForward.Core;
+using JetBrains.Annotations;
+using Octokit.Webhooks.Events.PullRequest;
 
 namespace BubblesBotGitHub.Tests.Unit.Fixtures;
 
 [SuppressMessage("ReSharper", "ConvertToConstant.Global")]
-public static class ActionOptionsFixture
+[UsedImplicitly]
+public class ActionOptionsFixture : IAsyncLifetime
 {
-    public static readonly string AutoMergeEnvName = "INPUT_AUTO_MERGE";
-    public static readonly string PostCommentEnvName = "INPUT_POST_COMMENT";
-    public static readonly string CustomCommandEnvName = "INPUT_CUSTOM_COMMAND";
+    private const string AutoMergeEnvName = "INPUT_AUTO_MERGE";
+    private const string PostCommentEnvName = "INPUT_POST_COMMENT";
+    private const string CustomCommandEnvName = "INPUT_CUSTOM_COMMAND";
+    public readonly bool AutoMergeValue = true;
+    public readonly string CustomCommandValue = "/fast-forward";
+    public readonly string PostCommentValue = "always";
+    public readonly PullRequestOpenedEvent WebhookEvent = AssemblyFixture.GetPullRequestOpenedEvent();
+    public readonly ActionEventType EventType = ActionEventType.PullRequestOpened;
+    
+    public ValueTask InitializeAsync()
+    {
+        Environment.SetEnvironmentVariable(AutoMergeEnvName, AutoMergeValue.ToString().ToLowerInvariant());
+        Environment.SetEnvironmentVariable(CustomCommandEnvName, CustomCommandValue);
+        Environment.SetEnvironmentVariable(PostCommentEnvName, PostCommentValue);
+        
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Environment.SetEnvironmentVariable(AutoMergeEnvName, null);
+        Environment.SetEnvironmentVariable(CustomCommandEnvName, null);
+        Environment.SetEnvironmentVariable(PostCommentEnvName, null);
+        
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
 }

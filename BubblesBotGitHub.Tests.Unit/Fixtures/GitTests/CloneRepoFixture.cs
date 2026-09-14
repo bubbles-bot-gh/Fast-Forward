@@ -7,16 +7,19 @@ namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 [UsedImplicitly]
 public class CloneRepoFixture : IAsyncLifetime
 {
+    private const string FixtureWorkingDir = $"{AssemblyFixture.RootWorkingDir}/GitTests/CloneRepo";
+    public readonly string WorkingDir = $"{FixtureWorkingDir}/{Guid.NewGuid()}";
     public readonly IGit Subject = new Git(new ProcessOutFactory());
-    private static readonly string FixtureWorkingDir = $"{AssemblyFixture.GitTestsDir}/CloneRepo";
-    public static string WorkingDir => $"{FixtureWorkingDir}/{Guid.NewGuid()}";
-    public static string RepoUrl => AssemblyFixture.RepoUrl;
-
+    
+    [UsedImplicitly]
+    public readonly string TestRepoUrl = AssemblyFixture.TestRepoUrl;
+    
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     public ValueTask DisposeAsync()
     {
         Directory.Delete(path: FixtureWorkingDir, recursive: true);
+        GC.SuppressFinalize(this);
         
         return ValueTask.CompletedTask;
     }

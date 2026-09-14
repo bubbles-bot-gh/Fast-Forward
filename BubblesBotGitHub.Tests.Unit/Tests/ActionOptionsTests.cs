@@ -1,4 +1,3 @@
-using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Implements;
 using BubblesBotGitHub.Tests.Unit.Fixtures;
@@ -6,45 +5,41 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BubblesBotGitHub.Tests.Unit.Tests;
 
-public sealed class ActionOptionsTests : IAsyncLifetime
+public sealed class ActionOptionsTests(ActionOptionsFixture classFixture) : IClassFixture<ActionOptionsFixture>
 {
-    public ValueTask InitializeAsync()
-    {
-        Environment.SetEnvironmentVariable(
-            ActionOptionsFixture.AutoMergeEnvName, 
-            AssemblyFixture.AutoMerge.ToString());
-        
-        Environment.SetEnvironmentVariable(
-            ActionOptionsFixture.CustomCommandEnvName, 
-            AssemblyFixture.CustomCommand);
-        
-        Environment.SetEnvironmentVariable(
-            ActionOptionsFixture.PostCommentEnvName, 
-            AssemblyFixture.PostComment);
-        
-        return ValueTask.CompletedTask;
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        Environment.SetEnvironmentVariable(ActionOptionsFixture.AutoMergeEnvName, null);
-        Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, null);
-        Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, null);
-        
-        return ValueTask.CompletedTask;
-    }
-    
     [Fact]
-    public void SuccessfullySetsOptions()
+    public void SuccessfullySetsIsAutoMerge()
     {
-        IServiceProvider collection = new ServiceCollection()
-            .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
+        IServiceProvider provider = new ServiceCollection()
+            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
             .BuildServiceProvider();
 
-        IActionOptions actionOptions = collection.GetRequiredService<IActionOptions>();
+        IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();
         
-        Assert.Equal(AssemblyFixture.AutoMerge, actionOptions.IsAutoMerge);
-        Assert.Equal(AssemblyFixture.CustomCommand, actionOptions.CustomCommand);
-        Assert.Equal(AssemblyFixture.PostComment, actionOptions.PostComment);
+        Assert.Equal(classFixture.AutoMergeValue, actionOptions.IsAutoMerge);
+    }
+
+    [Fact]
+    public void SuccessfullySetsCustomCommand()
+    {
+        IServiceProvider provider = new ServiceCollection()
+            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
+            .BuildServiceProvider();
+        
+        IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();
+        
+        Assert.Equal(classFixture.CustomCommandValue, actionOptions.CustomCommand);
+    }
+
+    [Fact]
+    public void SuccessfullySetsPostComment()
+    {
+        IServiceProvider provider = new ServiceCollection()
+            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
+            .BuildServiceProvider();
+        
+        IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();
+        
+        Assert.Equal(classFixture.PostCommentValue, actionOptions.PostComment);
     }
 }

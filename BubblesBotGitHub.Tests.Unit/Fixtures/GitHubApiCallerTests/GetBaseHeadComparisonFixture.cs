@@ -1,4 +1,6 @@
 using System.Net;
+using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
+using BubblesBotGitHub.FastForward.Implements.GitHubApiCaller;
 using JetBrains.Annotations;
 using Moq;
 using Octokit;
@@ -6,13 +8,13 @@ using Octokit;
 namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitHubApiCallerTests;
 
 [UsedImplicitly]
-public sealed class GetBaseHeadComparisonFixture
+public sealed class GetBaseHeadComparisonFixture : IAsyncLifetime
 {
-    public const string Owner = "bubbles-bot-gh";
-    public const string Name = "fast-forward";
-    public const string BaseSha = "abc123";
-    public const string HeadLabel = "tests/some-head-label";
-    public readonly Mock<IGitHubClient> MockOctokitClient = new(MockBehavior.Strict);
+    public readonly string Owner = "bubbles-bot-gh";
+    public readonly string Name = "fast-forward";
+    public readonly string BaseSha = "abc123";
+    public readonly string HeadLabel = "tests/some-head-label";
+    public readonly Mock<IGitHubClient> MockOctokitClient;
     public readonly CompareResult SuccessExpected= new(
         url: "",
         htmlUrl: "",
@@ -29,4 +31,20 @@ public sealed class GetBaseHeadComparisonFixture
         files: []);
 
     public readonly NotFoundException NotFoundException = new("Not Found", HttpStatusCode.NotFound);
+    public readonly IGitHubApiCaller Subject;
+    
+    public GetBaseHeadComparisonFixture()
+    {
+        MockOctokitClient = new Mock<IGitHubClient>(MockBehavior.Strict);
+        Subject = new GitHubApiCaller(MockOctokitClient.Object);
+    }
+    
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+    public ValueTask DisposeAsync()
+    {
+        MockOctokitClient.Reset();
+        
+        return ValueTask.CompletedTask;
+    }
 }

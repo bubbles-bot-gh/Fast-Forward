@@ -1,8 +1,7 @@
-using BubblesBotGitHub.FastForward.Core;
 using BubblesBotGitHub.FastForward.Core.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.FastForward.Implements;
-using BubblesBotGitHub.Tests.Unit.Fixtures;
+using BubblesBotGitHub.Tests.Unit.Entities;
+using BubblesBotGitHub.Tests.Unit.Fixtures.ServiceCollectionExtensionsTests;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -13,22 +12,17 @@ namespace BubblesBotGitHub.Tests.Unit.Tests;
 public sealed class ServiceCollectionExtensionsTests
 {
     [Collection("GitHubApiCallerServiceTests")]
-    public sealed class GitHubApiCallerService
+    public sealed class GitHubApiCallerService(ServiceCollectionExtensionsTestsFixture classFixture) 
+        : IClassFixture<ServiceCollectionExtensionsTestsFixture>
     {
         [Fact]
         public void SucceedsWhenAddingFactoryService()
         {
-            Mock<IGitHubApiCallerFactory> mockFactory = new();
-            mockFactory
-                .Setup(factory => factory.Create())
-                .Returns(Mock.Of<IGitHubApiCaller>());
-            
-            IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
-                .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
-                .BuildServiceProvider();
-        
-            IGitHubApiCallerFactory factory = services.GetRequiredService<IGitHubApiCallerFactory>();
+            // Using mocked services, verify IActionInfo is registered as a service
+            MockServices mockServices = new() { MockGitHubApiCallerFactory = null };
+            IGitHubApiCallerFactory factory = classFixture
+                .GetMockedServices(mockServices)
+                .GetRequiredService<IGitHubApiCallerFactory>();
 
             Assert.NotNull(factory);
         }
@@ -36,64 +30,70 @@ public sealed class ServiceCollectionExtensionsTests
         [Fact]
         public void SucceedsWhenAddingCallerService()
         {
+            // Create mock factory that returns a mocked IActionInfo
             Mock<IGitHubApiCallerFactory> mockFactory = new();
             mockFactory
                 .Setup(factory => factory.Create())
                 .Returns(Mock.Of<IGitHubApiCaller>());
+
+            // Using mocked services, verify IActionInfo is registered as a service
+            // TODO: Move mock service usage to class fixture
+            MockServices mockServices = new()
+            {
+                MockGitHubApiCaller = null, 
+                MockGitHubApiCallerFactory = mockFactory
+            };
             
-            IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
-                .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
-                .BuildServiceProvider();
+            IGitHubApiCaller actual = classFixture
+                .GetMockedServices(mockServices)
+                .GetRequiredService<IGitHubApiCaller>();
             
-            IGitHubApiCaller githubApiCaller = services.GetRequiredService<IGitHubApiCaller>();
-            Assert.NotNull(githubApiCaller);
+            mockFactory.Verify(factory => factory.Create(), Times.Once);
+            
+            IGitHubApiCaller expected = mockFactory.Object.Create();
+            Assert.Same(expected, actual);
         }
     }
     
     [Collection("ActionInfoServiceTests")]
-    public sealed class ActionInfoService
+    public sealed class ActionInfoService(ServiceCollectionExtensionsTestsFixture classFixture) 
+        : IClassFixture<ServiceCollectionExtensionsTestsFixture>
     {
         [Fact]
-        public void SucceedsWhenAddingService()
+        public void SucceedsWhenAddingActionInfoFactory()
         {
-            Mock<IGitHubApiCallerFactory> mockFactory = new();
+            // Using mocked services, verify IActionInfo is registered as a service
+            MockServices services = new() { MockActionInfoFactory = null };
+            IActionInfoFactory actual = classFixture
+                .GetMockedServices(services)
+                .GetRequiredService<IActionInfoFactory>();
+            
+            Assert.NotNull(actual);
+        }
+            
+        [Fact]
+        public async Task SucceedsWhenAddingActionInfoService()
+        {
+            // Create mock factory that returns a mocked IActionInfo
+            Mock<IActionInfoFactory> mockFactory = new();
             mockFactory
                 .Setup(factory => factory.Create())
-                .Returns(Mock.Of<IGitHubApiCaller>());
+                .ReturnsAsync(Mock.Of<IActionInfo>());
             
-            IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
-                .AddScoped<IGitHubApiCallerFactory>(_ => mockFactory.Object)
-                .BuildServiceProvider();
+            // Using mocked services, verify IActionInfo is registered as a service
+            MockServices services = new()
+            {
+                MockActionInfo = null, 
+                MockActionInfoFactory = mockFactory
+            };
+            IActionInfo actual = classFixture
+                .GetMockedServices(services)
+                .GetRequiredService<IActionInfo>();
             
-            IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
+            mockFactory.Verify(factory => factory.Create(), Times.Once);
             
-            Assert.NotNull(actionInfo);
-        }
-        
-        [Fact]
-        public void SucceedsWhenAddingIActionOptions()
-        {
-            // Set env vars
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.AutoMergeEnvName, AssemblyFixture.AutoMerge.ToString().ToLower());
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, AssemblyFixture.CustomCommand);
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, AssemblyFixture.PostComment);
-        
-            // Set up service container
-            IServiceProvider services = new ServiceCollection()
-                .AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened)
-                .BuildServiceProvider();
-        
-            IActionOptions actionOptions = services.GetRequiredService<IActionOptions>();
-
-            Assert.Equal(AssemblyFixture.AutoMerge, actionOptions.IsAutoMerge);
-            Assert.Equal(AssemblyFixture.CustomCommand, actionOptions.CustomCommand);
-            Assert.Equal(AssemblyFixture.PostComment, actionOptions.PostComment);
-
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.AutoMergeEnvName, null);
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.CustomCommandEnvName, null);
-            Environment.SetEnvironmentVariable(ActionOptionsFixture.PostCommentEnvName, null);
+            IActionInfo expected = await mockFactory.Object.Create();
+            Assert.Same(expected, actual);
         }
     }
 }

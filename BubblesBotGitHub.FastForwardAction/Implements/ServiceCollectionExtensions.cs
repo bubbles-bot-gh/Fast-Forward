@@ -50,7 +50,7 @@ public static class ServiceCollectionExtensions
                 {
                     IActionInfoFactory factory = provider.GetRequiredService<IActionInfoFactory>();
                     
-                    return factory.Create();
+                    return factory.Create().Result;
                 });
         }
     }

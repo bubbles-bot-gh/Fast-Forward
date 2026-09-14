@@ -7,18 +7,23 @@ namespace BubblesBotGitHub.Tests.Unit.Fixtures.GitTests;
 [UsedImplicitly]
 public class GetAmountOfParentsFixture : IAsyncLifetime
 {
-    private static readonly string FixtureWorkingDir = $"{AssemblyFixture.GitTestsDir}/GetAmountOfParents";
-    public static string Sha => AssemblyFixture.HeadSha;
-    public static uint ExpectedAmount => 1;
-    public static string WorkingDir => $"{FixtureWorkingDir}/{Guid.NewGuid()}";
-    public static string InvalidSha => "1";
+    public readonly string WorkingDir = $"{AssemblyFixture.RootWorkingDir}/GitTests/GetAmountOfParents";
+    public readonly string TestRepoHeadSha = AssemblyFixture.TestRepoHeadSha;
+    public readonly string TestRepoBaseSha = AssemblyFixture.TestRepoBaseSha;
+    public readonly uint ExpectedAmount = 1;
+    public readonly string InvalidSha = "1";
     public readonly IGit Subject = new Git(new ProcessOutFactory());
-    
-    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+    public readonly string TestRepoUrl = AssemblyFixture.TestRepoUrl;
+
+    public async ValueTask InitializeAsync()
+    {
+        await Subject.CloneRepoAsync(TestRepoUrl, WorkingDir);
+    }
 
     public ValueTask DisposeAsync()
     {
-        Directory.Delete(path: FixtureWorkingDir, recursive: true);
+        Directory.Delete(path: WorkingDir, recursive: true);
+        GC.SuppressFinalize(this);
         
         return ValueTask.CompletedTask;
     }
