@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core.Git;
 
-internal interface IProcessOut
+public interface IProcessOut
 {
     public int ExitCode { get; }
     public string StdOut { get; }

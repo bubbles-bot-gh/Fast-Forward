@@ -25,7 +25,7 @@ internal sealed class EventInfo : IEventInfo
             ?? (webhookEvent as IssueCommentCreatedEvent)?.Comment.Body 
             ?? string.Empty;
         CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
-        User = webhookEvent.Sender?.Name ?? string.Empty;
+        User = webhookEvent.Sender?.Login ?? string.Empty;
         UserHasPerms = gitHubApiCaller.IsCollaborator(repoInfo.Owner, repoInfo.Name, User);
     }
 }

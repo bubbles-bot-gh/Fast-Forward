@@ -1,6 +1,6 @@
 namespace BubblesBotGitHub.FastForward.Core.ActionInfo;
 
-internal interface IActionOptions
+public interface IActionOptions
 {
     bool IsAutoMerge { get; }
     string PostComment { get; }

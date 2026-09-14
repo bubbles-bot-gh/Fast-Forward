@@ -6,7 +6,6 @@ internal sealed record ActionOptions : IActionOptions
 {    
     public bool IsAutoMerge { get; }
     public string CustomCommand { get; }
-    
     public string PostComment
     {
         get;
