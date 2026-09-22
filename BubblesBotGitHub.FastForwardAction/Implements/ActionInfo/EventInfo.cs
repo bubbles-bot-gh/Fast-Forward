@@ -19,13 +19,13 @@ internal sealed class EventInfo : IEventInfo
         WebhookEvent webhookEvent, 
         IActionOptions opts,
         IRepoInfo repoInfo,
-        IGitHubApiCaller gitHubApiCaller)
+        IGitHubClient gitHubClient)
     {
         CommentBody = (webhookEvent as PullRequestOpenedEvent)?.PullRequest.Body
             ?? (webhookEvent as IssueCommentCreatedEvent)?.Comment.Body 
             ?? string.Empty;
         CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
         User = webhookEvent.Sender?.Login ?? string.Empty;
-        UserHasPerms = gitHubApiCaller.IsCollaborator(repoInfo.Owner, repoInfo.Name, User);
+        UserHasPerms = gitHubClient.IsCollaborator(repoInfo.Owner, repoInfo.Name, User);
     }
 }

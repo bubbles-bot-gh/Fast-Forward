@@ -12,7 +12,7 @@ internal sealed class ActionInfoFactory(
     IEventInfo eventInfo,
     IPrInfo prInfo,
     IGit git,
-    IGitHubApiCaller ghCaller,
+    IGitHubClient ghCaller,
     WebhookEvent webhookEvent,
     ActionEventType eventType) : IActionInfoFactory
 {
