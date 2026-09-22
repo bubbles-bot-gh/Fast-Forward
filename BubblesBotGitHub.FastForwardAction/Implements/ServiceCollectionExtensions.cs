@@ -21,18 +21,19 @@ public static class ServiceCollectionExtensions
                 .AddScoped(typeof(ActionEventType), _ => eventType)
                 .AddGitHubApiCaller()
                 .AddScoped<IGit, Git.Git>()
-                .AddActionInfo();
+                .AddActionInfo()
+                .AddScoped<ICommentBuilder, CommentBuilder>();
         }
         
         private IServiceCollection AddGitHubApiCaller()
         {
             return serviceCollection
-                .AddHttpClient<IGitHubApiCallerFactory, GitHubApiCallerFactory>()
+                .AddHttpClient<IGitHubClientFactory, GitHubClientFactory>()
                 .Services
                 .AddScoped<IProcessOutFactory, ProcessOutFactory>()
-                .AddScoped<IGitHubApiCaller>(provider =>
+                .AddScoped<IGitHubClient>(provider =>
                 {
-                    IGitHubApiCallerFactory factory = provider.GetRequiredService<IGitHubApiCallerFactory>();
+                    IGitHubClientFactory factory = provider.GetRequiredService<IGitHubClientFactory>();
 
                     return factory.Create();
                 });

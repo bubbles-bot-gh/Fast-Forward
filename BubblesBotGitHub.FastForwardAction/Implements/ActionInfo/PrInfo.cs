@@ -12,11 +12,14 @@ namespace BubblesBotGitHub.FastForward.Implements.ActionInfo;
 internal sealed record PrInfo : IPrInfo
 {
     private IGit _git = null!;
-    private IGitHubApiCaller _gitHubApiCaller = null!;
+    private IGitHubClient _gitHubClient = null!;
     private WebhookEvent _webhookEvent = null!;
-    
+
+    public string HeadRepoOwner { get; private set; } = string.Empty;
+    public string HeadRepoName { get; private set; } = string.Empty;
     public string BaseRef { get; private set; } = string.Empty;
     public string BaseSha { get; private set; } = string.Empty;
+    public string BaseLabel { get; private set; } = string.Empty;
     public string HeadRef { get; private set; } = string.Empty;
     public string HeadSha { get; private set; } = string.Empty;
     public string HeadLabel { get; private set; } = string.Empty;
@@ -28,30 +31,33 @@ internal sealed record PrInfo : IPrInfo
 
     // TODO: Ensure this gets called in service container extensions!
     public async Task InitializeAsync(IGit git,
-        IGitHubApiCaller gitHubApiCaller,
+        IGitHubClient gitHubClient,
         WebhookEvent webhookEvent,
         ActionEventType eventType)
     {
         _git = git;
-        _gitHubApiCaller = gitHubApiCaller;
+        _gitHubClient = gitHubClient;
         _webhookEvent = webhookEvent;
         
         Dictionary<ActionEventType, Func<Task>> extractionMap = new() 
         {
-            { ActionEventType.PullRequestOpened, ExtractDataFromPullRequestOpenedEvent },
-            { ActionEventType.IssueCommentCreated , ExtractDataFromIssueCommentEvent },
-            { ActionEventType.IssueCommentEdited, ExtractDataFromIssueCommentEvent }
+            { ActionEventType.PullRequestOpened, ParsePullRequestOpenedEvent },
+            { ActionEventType.IssueCommentCreated , ParseIssueCommentEvent },
+            { ActionEventType.IssueCommentEdited, ParseIssueCommentEvent }
         };
         
         await extractionMap[eventType].Invoke();
     }
 
-    private async Task ExtractDataFromPullRequestOpenedEvent()
+    private async Task ParsePullRequestOpenedEvent()
     {
         PullRequestOpenedEvent eventData = (PullRequestOpenedEvent)_webhookEvent;
-        
+
+        HeadRepoName = eventData.PullRequest.Head.Repo.Name;
+        HeadRepoOwner = eventData.PullRequest.Head.User.Login;
         BaseRef = eventData.PullRequest.Base.Ref;
         BaseSha = eventData.PullRequest.Base.Sha;
+        BaseLabel = eventData.PullRequest.Base.Label;
         HeadRef = eventData.PullRequest.Head.Ref;
         HeadSha = eventData.PullRequest.Head.Sha;
         HeadLabel = eventData.PullRequest.Head.Label;
@@ -62,7 +68,7 @@ internal sealed record PrInfo : IPrInfo
         BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
     }
 
-    private async Task ExtractDataFromIssueCommentEvent()
+    private async Task ParseIssueCommentEvent()
     {
         IssueCommentCreatedEvent eventData = (IssueCommentCreatedEvent)_webhookEvent;
         
@@ -91,10 +97,13 @@ internal sealed record PrInfo : IPrInfo
         string repoOwner = eventData.Repository.Owner.Login;
         string repoName = eventData.Repository.Name;
         IssueNumber = eventData.Issue.Number;
-        Octokit.PullRequest pr = await _gitHubApiCaller.GetPullRequestAsync(repoOwner, repoName, IssueNumber);
-        
+        Octokit.PullRequest pr = await _gitHubClient.GetPullRequestAsync(repoOwner, repoName, IssueNumber);
+
+        HeadRepoOwner = pr.Head.User.Login;
+        HeadRepoName = pr.Head.Repository.Name;
         BaseSha = pr.Base.Sha;
         BaseRef = pr.Base.Ref;
+        BaseLabel = pr.Base.Label;
         HeadRef = pr.Head.Ref;
         HeadSha = pr.Head.Sha;
         HeadLabel = pr.Head.Label;
