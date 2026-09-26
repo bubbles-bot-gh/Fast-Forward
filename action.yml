@@ -1,0 +1,35 @@
+# Metadata
+name: "Fast-Forward"
+description: "Allows for fast-forwarding of pull requests."
+author: "Lunei Solei"
+
+# Inputs
+inputs:
+  auto_merge:
+    required: false
+    default: "false"
+    description: >
+      "Boolean that determines if the target branch should automatically be fast-forwarded upon determining that a pull
+      request is eligible to do so."
+  comment:
+    required: false
+    default: "always"
+    description: >
+      ""always" - Posts a comment to the pull request indicating if it is possible to fast-forward the target branch 
+      and, if 'auto_merge' is true, if fast-forwarding succeeded.
+      
+      "on-error" - A comment is only posted if an error occurs.
+      
+      "never" - No comment is posted. The comment is still available via the GitHub Workflow's output variable and in 
+      the step's summary."
+  custom_command:
+    required: true
+    default: "/fast-forward"
+    description: >
+      "The command to be used to trigger the workflow."
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+      

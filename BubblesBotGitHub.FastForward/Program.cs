@@ -28,7 +28,6 @@ internal class Program
         // Determine the event type
         (WebhookEvent webhookEvent, ActionEventType eventType) = ParseWebhookEvent(eventName, json);
         
-        // TODO: Finish implementing IOptions pattern
         // Using the webhook event, set up services
         IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
         builder.Services.AddAppServices(webhookEvent, eventType);
