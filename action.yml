@@ -2,6 +2,9 @@
 name: "Fast-Forward"
 description: "Allows for fast-forwarding of pull requests."
 author: "Lunei Solei"
+branding:
+  icon: fast-forward
+  color: blue
 
 # Inputs
 inputs:
@@ -11,7 +14,7 @@ inputs:
     description: >
       "Boolean that determines if the target branch should automatically be fast-forwarded upon determining that a pull
       request is eligible to do so."
-  comment:
+  post_comment:
     required: false
     default: "always"
     description: >
