@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using BubblesBotGitHub.FastForward.Core;
+using BubblesBotGitHub.FastForward.Core.Enums;
 using JetBrains.Annotations;
 using Octokit.Webhooks.Events.PullRequest;
 

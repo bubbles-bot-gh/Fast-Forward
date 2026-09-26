@@ -1,9 +1,9 @@
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
-using BubblesBotGitHub.FastForward.Implements;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Infrastructure.Extensions;
 using BubblesBotGitHub.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 public sealed class ActionOptionsTests(ActionOptionsFixture classFixture) : IClassFixture<ActionOptionsFixture>
 {

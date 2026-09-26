@@ -1,9 +1,8 @@
+using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Core;
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
-using BubblesBotGitHub.FastForward.Core.Git;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.FastForward.Implements.ActionInfo;
-using BubblesBotGitHub.FastForward.Implements.Git;
+using BubblesBotGitHub.FastForward.Core.Enums;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Entities;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,7 +75,7 @@ public class PrInfoFixture
     private static Func<IPrInfo> SubjectSetup(WebhookEvent webhookEvent, ActionEventType eventType) => () =>
     {
         Mock<IGit> mockGit = new Mock<IGit>(MockBehavior.Strict);
-        Mock<IGitHubClient> mockGitHubApiCaller = new Mock<IGitHubClient>(MockBehavior.Strict);
+        Mock<IGitHubClient> mockGitHubClient = new Mock<IGitHubClient>(MockBehavior.Strict);
         
         mockGit
             .Setup(git => git.GetMergeBaseSha(BaseSha, HeadSha))
@@ -91,7 +90,7 @@ public class PrInfoFixture
             .CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
             .GetRequiredService<IPrInfo>();
         
-        subject.InitializeAsync(mockGit.Object, mockGitHubApiCaller.Object, webhookEvent, eventType);
+        subject.InitializeAsync(mockGit.Object, mockGitHubClient.Object, webhookEvent, eventType);
 
         return subject;
     };

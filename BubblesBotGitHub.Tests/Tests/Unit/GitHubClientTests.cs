@@ -1,83 +1,15 @@
 using System.Linq.Expressions;
-using System.Net;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.Tests.Fixtures.GitHubApiCallerTests;
+using BubblesBotGitHub.Tests.Fixtures.GitHubClientTests;
 using JetBrains.Annotations;
 using Moq;
-using Moq.Protected;
 using Octokit;
-using IGitHubClient = BubblesBotGitHub.FastForward.Core.GitHubApiCaller.IGitHubClient;
+using IGitHubClient = BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient.IGitHubClient;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 [UsedImplicitly]
 public sealed class GitHubClientTests
 {
-    public class GitHubApiCallerFactory(GitHubApiCallerFactoryFixture classFixture) 
-        : IClassFixture<GitHubApiCallerFactoryFixture>
-    {
-        [Fact]
-        public void SucceedsCreatingInstance()
-        {
-            Environment.SetEnvironmentVariable(classFixture.RequestTokenEnvName, classFixture.RequestTokenEnvValue);
-            Environment.SetEnvironmentVariable(classFixture.RequestUrlEnvName, classFixture.RequestUrlEnvValue);
-            
-            // Mock setup
-            classFixture
-                .MockHttpHandler
-                .Protected()
-                .Setup<HttpResponseMessage>(
-                    "Send",
-                    ItExpr.Is<HttpRequestMessage>(req =>
-                        req.Method == HttpMethod.Get 
-                        && req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)
-                    ),
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns(
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(classFixture.MockOidcValue)
-                    });
-
-            classFixture
-                .MockHttpHandler
-                .Protected()
-                .Setup<HttpResponseMessage>(
-                    "Send",
-                    ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
-                        && req.RequestUri!.Host.Contains(classFixture.SupabaseHost)
-                    ),
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns(
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(classFixture.MockInstallationTokenValue)
-                    });
-            
-            // Get subject with mocked object
-            IGitHubClientFactory factory = classFixture.GetFactory(new HttpClient(classFixture.MockHttpHandler.Object));
-            IGitHubClient client = factory.Create();
-            
-            // Verify results
-            Assert.NotNull(client);
-            classFixture.MockHttpHandler.Protected().Verify(
-                "Send",
-                Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)),
-                ItExpr.IsAny<CancellationToken>());
-            
-            classFixture.MockHttpHandler.Protected().Verify(
-                "Send",
-                Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req => 
-                    req.RequestUri!.Host.Contains(classFixture.SupabaseHost)),
-                ItExpr.IsAny<CancellationToken>());
-        }
-    }
-    
     public sealed class GetPullRequest(GetPullRequestFixture classFixture) : IClassFixture<GetPullRequestFixture>
     {
         [Fact]
@@ -277,7 +209,7 @@ public sealed class GitHubClientTests
             
             // Get subject with mocked object
             IGitHubClient subject = classFixture.Subject;
-            
+
             // Verify results
             await Assert.ThrowsAsync<NotFoundException>(() => 
                 subject.PostComment(owner, name, issueNumber, expected.Body));

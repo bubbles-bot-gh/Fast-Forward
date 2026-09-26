@@ -1,8 +1,7 @@
+using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Core;
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
-using BubblesBotGitHub.FastForward.Implements;
-using BubblesBotGitHub.FastForward.Implements.ActionInfo;
+using BubblesBotGitHub.FastForward.Core.Enums;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Entities;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,14 +63,13 @@ public sealed class EventInfoFixture
     {
         Mock<IActionOptions> mockOptions = new(MockBehavior.Strict);
         Mock<IRepoInfo> mockRepoInfo = new(MockBehavior.Strict);
-        Mock<IGitHubClient> mockGitHubApiCaller = new(MockBehavior.Strict);
+        Mock<IGitHubClient> mockGitHubClient = new(MockBehavior.Strict);
 
         string owner = webhookEvent.Repository?.Owner.Login
             ?? throw new InvalidOperationException("Repository unexpectedly null. Is event JSON correct?");
         string name = webhookEvent.Repository.Name;
         string user = webhookEvent.Sender?.Login
             ?? throw new InvalidOperationException("Sender unexpectedly null. Is event JSON correct?");
-        Console.WriteLine(user);
 
         mockOptions
             .SetupGet(options => options.CustomCommand)
@@ -85,7 +83,7 @@ public sealed class EventInfoFixture
             .SetupGet(repoInfo => repoInfo.Name)
             .Returns(name);
 
-        mockGitHubApiCaller
+        mockGitHubClient
             .Setup(caller => caller.IsCollaborator(owner, name, user))
             .ReturnsAsync(() => IsCollaborator);
         
@@ -93,7 +91,7 @@ public sealed class EventInfoFixture
         {
             MockActionOptions = mockOptions,
             MockRepoInfo = mockRepoInfo,
-            MockGitHubApiCaller = mockGitHubApiCaller,
+            MockGitHubClient = mockGitHubClient,
             MockEventInfo = null
         };
         

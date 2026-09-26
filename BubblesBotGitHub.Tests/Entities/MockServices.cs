@@ -1,15 +1,15 @@
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
-using BubblesBotGitHub.FastForward.Core.Git;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using Moq;
 
 namespace BubblesBotGitHub.Tests.Entities;
 
 public class MockServices
 {
-    public Mock<IGitHubClientFactory>? MockGitHubApiCallerFactory = new();
+    public Mock<IGitHubClientFactory>? MockGitHubClientFactory = new();
     public Mock<IProcessOutFactory>? MockProcessOutFactory = new();
-    public Mock<IGitHubClient>? MockGitHubApiCaller = new();
+    public Mock<IGitHubClient>? MockGitHubClient = new();
     public Mock<IGit>? MockGit = new();
     public Mock<IActionOptions>? MockActionOptions = new();
     public Mock<IEventInfo>? MockEventInfo = new();
@@ -17,6 +17,7 @@ public class MockServices
     public Mock<IPrInfo>? MockPrInfo = new();
     public Mock<IActionInfoFactory>? MockActionInfoFactory = new();
     public Mock<IActionInfo>? MockActionInfo = new();
+    public Mock<HttpClient>? MockHttpClient = new();
     
     public static Mock<IRepoInfo> CreateMockRepoInfo(string owner, string cloneUrl, string name)
     {
@@ -33,7 +34,7 @@ public class MockServices
         return mock;
     }
 
-    public static Mock<IGitHubClientFactory> CreateMockGitHubApiCallerFactory()
+    public static Mock<IGitHubClientFactory> CreateMockGitHubClientFactory()
     {
         Mock<IGitHubClientFactory> mock = new();
         mock.Setup(factory => factory.Create())

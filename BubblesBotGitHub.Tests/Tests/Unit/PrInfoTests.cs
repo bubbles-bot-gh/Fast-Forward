@@ -1,8 +1,8 @@
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 using BubblesBotGitHub.Tests.Fixtures.PrInfoTests;
 using JetBrains.Annotations;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 [UsedImplicitly]
 public sealed class PrInfoTests(PrInfoFixture classFixture) : IClassFixture<PrInfoFixture>
