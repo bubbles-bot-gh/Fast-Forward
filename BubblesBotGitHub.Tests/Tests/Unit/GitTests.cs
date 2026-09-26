@@ -1,12 +1,22 @@
 ﻿using BubblesBotGitHub.FastForward.Core.Exceptions;
+using BubblesBotGitHub.Tests.Fixtures;
 using BubblesBotGitHub.Tests.Fixtures.GitTests;
 using JetBrains.Annotations;
 
 namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 [UsedImplicitly]
-public sealed class GitTests
+public sealed class GitTests : IAsyncLifetime
 {
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+    public ValueTask DisposeAsync()
+    {
+        Directory.Delete($"{AssemblyFixture.RootWorkingDir}/GitTests/", recursive: true);
+        
+        return ValueTask.CompletedTask;
+    }
+    
     [Collection("CloneRepoTests")]
     public sealed class CloneRepo(CloneRepoFixture classFixture)
         : IAsyncLifetime, IClassFixture<CloneRepoFixture>

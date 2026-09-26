@@ -16,8 +16,17 @@ using Octokit.Webhooks.Events.PullRequest;
 [assembly: AssemblyFixture(typeof(AssemblyFixture))]
 namespace BubblesBotGitHub.Tests.Fixtures;
 
-public class AssemblyFixture
+public class AssemblyFixture : IAsyncLifetime
 {
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+    public ValueTask DisposeAsync()
+    {
+        Directory.Delete(RootWorkingDir, true);
+        
+        return ValueTask.CompletedTask;        
+    }
+    
     public const string RootWorkingDir = "./tmp";
     public const string CustomCommand = "/fast-forward";
     private const string PrOpenedEventJson = "./Events/PullRequestOpenedEvent.json";
