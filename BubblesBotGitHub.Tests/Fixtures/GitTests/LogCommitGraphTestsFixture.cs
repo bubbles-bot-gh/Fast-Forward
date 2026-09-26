@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using BubblesBotGitHub.FastForward.Core.Git;
-using BubblesBotGitHub.FastForward.Implements.Git;
+using BubblesBotGitHub.FastForward.Application;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Infrastructure.Services;
 
 namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
 

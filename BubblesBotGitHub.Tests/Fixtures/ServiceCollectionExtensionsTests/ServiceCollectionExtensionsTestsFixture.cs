@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using BubblesBotGitHub.FastForward.Core;
+using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.Tests.Entities;
 using JetBrains.Annotations;
 

@@ -1,7 +1,7 @@
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.Tests.Fixtures;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 public sealed class EventInfoTests(EventInfoFixture classFixture) : IClassFixture<EventInfoFixture>
 {

@@ -1,25 +1,25 @@
-using BubblesBotGitHub.FastForward.Core.ActionInfo;
-using BubblesBotGitHub.FastForward.Core.GitHubApiCaller;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Entities;
 using BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionsTests;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 [UsedImplicitly]
 public sealed class ServiceCollectionExtensionsTests
 {
-    [Collection("GitHubApiCallerServiceTests")]
-    public sealed class GitHubApiCallerService(ServiceCollectionExtensionsTestsFixture classFixture) 
+    [Collection("GitHubClientServiceTests")]
+    public sealed class GitHubClientService(ServiceCollectionExtensionsTestsFixture classFixture) 
         : IClassFixture<ServiceCollectionExtensionsTestsFixture>
     {
         [Fact]
         public void SucceedsWhenAddingFactoryService()
         {
             // Using mocked services, verify IActionInfo is registered as a service
-            MockServices mockServices = new() { MockGitHubApiCallerFactory = null };
+            MockServices mockServices = new() { MockGitHubClientFactory = null };
             IGitHubClientFactory factory = classFixture
                 .GetMockedServices(mockServices)
                 .GetRequiredService<IGitHubClientFactory>();
@@ -34,23 +34,23 @@ public sealed class ServiceCollectionExtensionsTests
             Mock<IGitHubClientFactory> mockFactory = new();
             mockFactory
                 .Setup(factory => factory.Create())
-                .Returns(Mock.Of<IGitHubApiCaller>());
+                .Returns(Mock.Of<IGitHubClient>());
 
             // Using mocked services, verify IActionInfo is registered as a service
             // TODO: Move mock service usage to class fixture
             MockServices mockServices = new()
             {
-                MockGitHubApiCaller = null, 
-                MockGitHubApiCallerFactory = mockFactory
+                MockGitHubClient = null, 
+                MockGitHubClientFactory = mockFactory
             };
             
-            IGitHubApiCaller actual = classFixture
+            IGitHubClient actual = classFixture
                 .GetMockedServices(mockServices)
-                .GetRequiredService<IGitHubApiCaller>();
+                .GetRequiredService<IGitHubClient>();
             
             mockFactory.Verify(factory => factory.Create(), Times.Once);
             
-            IGitHubApiCaller expected = mockFactory.Object.Create();
+            IGitHubClient expected = mockFactory.Object.Create();
             Assert.Same(expected, actual);
         }
     }

@@ -1,8 +1,8 @@
-﻿using BubblesBotGitHub.FastForward.Core.Errors;
+﻿using BubblesBotGitHub.FastForward.Core.Exceptions;
 using BubblesBotGitHub.Tests.Fixtures.GitTests;
 using JetBrains.Annotations;
 
-namespace BubblesBotGitHub.Tests.Tests;
+namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 [UsedImplicitly]
 public sealed class GitTests

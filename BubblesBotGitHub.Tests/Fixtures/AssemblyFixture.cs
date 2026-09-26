@@ -1,11 +1,14 @@
 using System.Text.Json;
-using BubblesBotGitHub.FastForward.Core;
-using BubblesBotGitHub.FastForward.Implements;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Enums;
+using BubblesBotGitHub.FastForward.Infrastructure.Extensions;
 using BubblesBotGitHub.Tests.Entities;
 using BubblesBotGitHub.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
+using Octokit;
+using Octokit.Internal;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
@@ -25,6 +28,12 @@ public class AssemblyFixture
     public const string TestRepoBaseSha = "a3f4edfee60026fc44989822ac8789e376f374a2";
     public const string TestRepoHeadSha = "1f85b89057373f54de739944889d1abec8c048b0";
 
+    internal static GitHubCommit GetGitHubCommit()
+    {
+        SimpleJsonSerializer serializer = new();
+        return serializer.Deserialize<GitHubCommit>(File.ReadAllText("./Events/Commit.json"));
+    }
+    
     internal static IServiceProvider CreateServiceCollectionWithMocks(
         WebhookEvent webhookEvent,
         ActionEventType eventType,
@@ -32,17 +41,17 @@ public class AssemblyFixture
     {
         IServiceCollection services = new ServiceCollection().AddAppServices(webhookEvent, eventType);
 
-        // Replace IGitHubApiCallerFactory service, if needed
-        if (mockServices.MockGitHubApiCallerFactory is not null)
-            ReplaceService(services, mockServices.MockGitHubApiCallerFactory);
+        // Replace IGitHubClientFactory service, if needed
+        if (mockServices.MockGitHubClientFactory is not null)
+            ReplaceService(services, mockServices.MockGitHubClientFactory);
 
         // Replace IProcessOutFactory service, if needed
         if (mockServices.MockProcessOutFactory is not null)
             ReplaceService(services, mockServices.MockProcessOutFactory);
             
-        // Replace IGitHubApiCaller service, if needed
-        if (mockServices.MockGitHubApiCaller is not null)
-            ReplaceService(services, mockServices.MockGitHubApiCaller);
+        // Replace IGitHubClient service, if needed
+        if (mockServices.MockGitHubClient is not null)
+            ReplaceService(services, mockServices.MockGitHubClient);
 
         // Replace IGit service, if needed
         if (mockServices.MockGit is not null)
@@ -71,6 +80,10 @@ public class AssemblyFixture
         // Replace IActionInfo service, if needed
         if (mockServices.MockActionInfo is not null)
             ReplaceService(services, mockServices.MockActionInfo);
+        
+        // Replace HttpClient, if needed
+        if (mockServices.MockHttpClient is not null)
+            ReplaceService(services, mockServices.MockHttpClient);
 
         return services.BuildServiceProvider();
     }

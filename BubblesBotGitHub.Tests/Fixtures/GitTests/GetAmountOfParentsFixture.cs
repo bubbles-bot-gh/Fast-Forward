@@ -1,5 +1,6 @@
-using BubblesBotGitHub.FastForward.Core.Git;
-using BubblesBotGitHub.FastForward.Implements.Git;
+using BubblesBotGitHub.FastForward.Application;
+using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Infrastructure.Services;
 using JetBrains.Annotations;
 
 namespace BubblesBotGitHub.Tests.Fixtures.GitTests;
