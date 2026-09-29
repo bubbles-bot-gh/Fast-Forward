@@ -2,6 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/BubblesBotGitHub.Tests/bin/Debug/net10.0/tmp/GitTest/GetMergeBaseSha/a03e88a0-a5db-487e-845a-cfc56ae58a84" vcs="Git" />
   </component>
 </project>
