@@ -1,0 +1,55 @@
+# Regular users should NOT use this file! This is strictly for 
+# this repository's testing!
+
+name: Bubbles-Bot-GH Fast-Forward
+
+on:
+  pull_request:
+    types: 
+      - opened
+  issue_comment:
+    types:
+      - created
+      - edited
+
+permissions:
+  id-token: write
+  
+jobs:
+  fast-forward:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+        
+      - name: Fast-Forward
+        uses: ./action.yml
+        with: 
+          auto_merge: true
+          post_comment: "always"
+          custom_command: "/fast-forward"
+      
+  cleanup:
+    needs:
+      - fast-forward
+    if: always() && startsWith(github.event.pull_request.head.ref, 'ci-test/')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        
+      - name: Delete CI Test Branches
+        run: |
+          set -euo pipefail
+          
+          gh pr close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" || true
+          
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            --delete "${{ github.event.pull_request.head_ref }}" || true
+          
+          git push "https://x-access-token; ${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            --delete "${{ github.event.pull_request.base_ref }}" || true
