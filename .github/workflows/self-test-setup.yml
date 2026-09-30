@@ -1,0 +1,61 @@
+name: Self Test Setup
+
+on: 
+  workflow_dispatch: { }
+  
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          token: ${{ secrets.pat }}
+          fetch-depth: 0
+          
+      - name: Configure Git Identity
+        run: |
+          git config user.name "bubbles-bot"
+          git config user.email "bubbles-bot@users.noreply.github.com"
+          
+      - name: Create Base & Head Branches
+        id: branches
+        run: |
+          set -euo pipefail
+          RUN_ID="${{ github.run_id }}-${{ github.run_number }}"
+          BASE="self-test/$RUN_ID-base"
+          HEAD="self-test/$RUN_ID-head"
+          
+          git checkout -b "$BASE"
+          git push origin "$BASE"
+          
+          git checkout -b "$HEAD"
+          echo "self-test marker $RUN_ID $( -u +%FT%TZ)" >> self-test-marker.txt
+          git add self-test-marker.txt
+          git commit -m "self-test: fast-forwardable commit for $RUN_ID"
+          git push origin "$HEAD"
+          
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD" >> "$GITHUB_OUTPUT"
+          
+      - name: Open PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.pat }}
+        run: |
+          set -euo pipefail
+          URL=$(gh pr create \
+            --base "${{ steps.branches.outputs.base }}" \
+            --head "${{ steps.branches.outputs.head }}" \
+            --title "[self-test] fast-forward scenario ${{ github.run_id }}" \
+            --body "Auto-created by self-test-setup.yml. Do not merge manually; integration-tests.yml owns this PR.")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Opened $URL"
+          
+      - name: Post Custom Command
+        env:
+          GH_TOKEN: ${{ secrets.pat }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${{ steps.pr.outputs.url }}" --body "/fast-forward"
+          echo "Posted trigger comment on ${{ steps.pr.outputs.url }}"
