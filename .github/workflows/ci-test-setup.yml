@@ -3,10 +3,8 @@ name: CI Test Setup
 on:
   workflow_dispatch: { }
   pull_request:
-    branches-ignore:
-      - ci-test/*
-    types:
-      - opened
+    branches-ignore: [ci-test/*]
+    types: [opened]
 
 permissions:
   id-token: write

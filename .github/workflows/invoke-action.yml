@@ -2,9 +2,11 @@ name: Invoke Action
 
 on: 
   workflow_dispatch: { }
+  workflow_run:
+    types: [completed]
+    workflows: ["CI Test Setup"]
   issue_comment:
-    types: 
-      - created
+    types: [created]
 
 permissions:
   id-token: write
