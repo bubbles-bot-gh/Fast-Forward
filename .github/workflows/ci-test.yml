@@ -1,31 +1,34 @@
-name: CI Test Setup
+name: CI Test
 
 on:
   workflow_dispatch: { }
-  workflow_call: { }
-
+  pull_request_target:
+    branches-ignore: 
+      - ci-test/*
+    types: 
+      - opened
+    
 permissions:
   id-token: write
   pull-requests: write
   issues: write
   contents: write
-
+  
 jobs:
   setup:
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-      
+          
       - name: Configure Git Identity
         run: |
-          git config user.name "bubbles-bot"
-          git config user.email "bubbles-bot@users.noreply.github.com"
-      
+          git config user.name "bubbles-bot-gh"
+          git config user.email "bubbles-bot-gh@users.noreply.github.com"
+          
       - name: Create Test Head & Base Branches
         id: branches
         run: |
@@ -50,27 +53,27 @@ jobs:
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           echo "head=$HEAD" >> "$GITHUB_OUTPUT"
           
-      - name: Open PR
+      - name: Open Pull Request
         id: pr
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          
           URL=$(gh pr create \
             --base "${{ steps.branches.outputs.base }}" \
             --head "${{ steps.branches.outputs.head }}" \
             --title "[ci-test] fast-forward scenario ${{ github.run_id }}" \
             --body "Auto-created by workflow '${{ github.workflow }}'. 
                 Do not merge manually; workflow '${{ github.workflow }}' owns this PR.")
-          
+
           # Export the url to the pull request
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "Opened pull request, $URL"
           
       - name: Post Fast-Forward Command
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          
           gh pr comment "${{ steps.pr.outputs.url }}" --body "/fast-forward"
           echo "Posted trigger comment on ${{ steps.pr.outputs.url }}"
