@@ -46,9 +46,9 @@ jobs:
 
           # Create our head branch, add a test file, then push it to github          
           git checkout -b "$HEAD"
-          echo "ci-test marker $RUN_ID $(date -u +%FT%TZ)" >> ci-test-marker.txt
+          echo "ci-test marker $RUN_LABEL $(date -u +%FT%TZ)" >> ci-test-marker.txt
           git add ci-test-marker.txt
-          git commit -m "ci-test: fast-forwardable commit for $RUN_ID"
+          git commit -m "ci-test: fast-forwardable commit for $RUN_LABEL"
           git push origin "$HEAD"
           
           # Export our base and head branch labels
