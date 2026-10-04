@@ -21,9 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
         
       - name: Fast-Forward
-        uses: bubbles-bot-gh/fast-forward/action.yml@v1.0.0-alpha
+        uses: ./action.yml
         with: 
           auto_merge: true
           post_comment: "always"
