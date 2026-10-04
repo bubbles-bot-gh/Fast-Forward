@@ -34,6 +34,7 @@ jobs:
         run: |
           # Create names for our test branches
           set -euo pipefail
+          
           RUN_LABEL="${{ github.run_id }}-${{ github.run_number }}"
           BASE="ci-test/$RUN_LABEL-base"
           HEAD="ci-test/$RUN_LABEL-head"
@@ -55,6 +56,8 @@ jobs:
           
       - name: Open Pull Request
         id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           
