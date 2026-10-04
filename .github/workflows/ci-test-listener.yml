@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Assert Action Succeeded
-        if: needs.run-action.result != "success"
+        if: needs.run-action.result != 'success'
         run: |
           echo "::error::run-action did not succeed (result=${{ needs.run-action.result }}. Does the Dockerfile exist?"
           
