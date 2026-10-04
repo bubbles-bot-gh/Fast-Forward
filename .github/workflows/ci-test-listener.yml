@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v7.0.1
         
       - name: Run Action
-        uses: action.yml
+        uses: bubbles-bot-gh/fast-forward/action.yml@v1
         with:
           auto_merge: true
           post_comment: "always"
