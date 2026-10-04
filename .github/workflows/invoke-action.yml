@@ -68,7 +68,7 @@ jobs:
       - name: Assert Action Succeeded
         if: needs.run-action.result != 'success'
         run: |
-          echo "::error::run-action did not succeed (result=${{ needs.run-action.result }}. Does the Dockerfile exist?"
+          echo "::error::run-action did not succeed (result=${{ needs.run-action.result }}). Does the Dockerfile exist?"
           
           exit 1
         
