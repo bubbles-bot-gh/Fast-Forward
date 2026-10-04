@@ -3,6 +3,11 @@ name: CI Test Listener
 on: 
   workflow_dispatch: { }
   workflow_call: { }
+
+permissions:
+  id-token: write
+  pull-requests: write
+  issues: write
   
 jobs:
   get-context:
