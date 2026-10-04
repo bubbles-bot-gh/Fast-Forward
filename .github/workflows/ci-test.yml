@@ -19,6 +19,7 @@ permissions:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]' && github.event.issue.pull_request != null
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
