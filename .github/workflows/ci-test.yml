@@ -66,7 +66,7 @@ jobs:
             --head "${{ steps.branches.outputs.head }}" \
             --title "[ci-test] fast-forward scenario ${{ github.run_id }}" \
             --body "Auto-created by workflow '${{ github.workflow }}'. 
-                Do not merge manually; workflow '${{ github.workflow }}' owns this PR."
+                Do not merge manually; workflow '${{ github.workflow }}' owns this PR.")
           
           # Export the url to the pull request
           echo "url=$URL" >> "$GITHUB_OUTPUT"
