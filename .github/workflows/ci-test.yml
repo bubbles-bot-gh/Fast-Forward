@@ -1,0 +1,82 @@
+name: CI Test
+
+on:
+  workflow_dispatch: { }
+  pull_request_target:
+    branches-ignore: 
+      - ci-test/*
+    types: 
+      - opened
+    
+permissions:
+  id-token: write
+  pull-requests: write
+  issues: write
+  contents: write
+  
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Configure Git Identity
+        run: |
+          git config user.name "bubbles-bot-gh"
+          git config user.email "bubbles-bot-gh@users.noreply.github.com"
+          
+      - name: Create Test Head & Base Branches
+        id: branches
+        run: |
+          # Create names for our test branches
+          set -euo pipefail
+          
+          RUN_LABEL="${{ github.run_id }}-${{ github.run_number }}"
+          BASE="ci-test/$RUN_LABEL-base"
+          HEAD="ci-test/$RUN_LABEL-head"
+          
+          # Create our base branch and push it to github
+          git checkout -b "$BASE"
+          git push origin "$BASE"
+
+          # Create our head branch, add a test file, then push it to github          
+          git checkout -b "$HEAD"
+          echo "ci-test marker $RUN_LABEL $(date -u +%FT%TZ)" >> ci-test-marker.txt
+          git add ci-test-marker.txt
+          git commit -m "ci-test: fast-forwardable commit for $RUN_LABEL"
+          git push origin "$HEAD"
+          
+          # Export our base and head branch labels
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD" >> "$GITHUB_OUTPUT"
+          
+      - name: Open Pull Request
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          
+          URL=$(gh pr create \
+            --base "${{ steps.branches.outputs.base }}" \
+            --head "${{ steps.branches.outputs.head }}" \
+            --title "[ci-test] fast-forward scenario ${{ github.run_id }}" \
+            --body "Auto-created by workflow '${{ github.workflow }}'. 
+                Do not merge manually; workflow '${{ github.workflow }}' owns this PR.")
+
+          # Export the url to the pull request
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Opened pull request, $URL"
+          
+      - name: Post Fast-Forward Command
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          
+          gh pr comment "${{ steps.pr.outputs.url }}" --body "/fast-forward"
+          echo "Posted trigger comment on ${{ steps.pr.outputs.url }}"
