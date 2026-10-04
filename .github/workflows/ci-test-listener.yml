@@ -41,7 +41,7 @@ jobs:
           
   run-action:
     needs: get-context
-    if: needs.get-context.outputs.is_ci_test == "true"
+    if: needs.get-context.outputs.is_ci_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -55,7 +55,7 @@ jobs:
           custom_command: "/fast-forward"
   verify:
     needs: [ get-context, run-action ]
-    if: always() && needs.get-context.outputs.is_ci_test == "true"
+    if: always() && needs.get-context.outputs.is_ci_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Assert Action Succeeded
@@ -105,7 +105,7 @@ jobs:
           
   cleanup:
     needs: [ get-context, verify ]
-    if: always() && needs.get-context.outputs.is_ci_test == "true"
+    if: always() && needs.get-context.outputs.is_ci_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Close PR and Delete Scenario Branches
