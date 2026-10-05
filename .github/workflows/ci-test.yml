@@ -15,11 +15,8 @@ permissions:
   contents: write
   
 jobs:
-  # This job checks out the repo, creates 2 new branches (one each for base and head targets), creates a new pull 
-  # request using the newly created branches, and then triggers the fast-forward by posting the relevant command.
   setup:
     runs-on: ubuntu-latest
-    environment: ci-testing
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
