@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
         
       - name: Fast-Forward
-        uses: ./.github/actions/action.yml
+        uses: ./.github/actions
         with: 
           auto_merge: true
           post_comment: "always"
