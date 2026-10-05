@@ -5,7 +5,7 @@ name: Bubbles-Bot-GH Fast-Forward
 
 on:
   pull_request:
-    types: 
+    types:
       - opened
   issue_comment:
     types:
@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
         
       - name: Fast-Forward
-        uses: ./action.yml
+        uses: ./.github/actions/action.yml
         with: 
           auto_merge: true
           post_comment: "always"
