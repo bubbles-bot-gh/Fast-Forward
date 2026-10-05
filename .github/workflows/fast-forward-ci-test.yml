@@ -1,6 +1,10 @@
 # Regular users should NOT use this file! This is strictly for 
 # this repository's testing!
 
+# This workflow is used to test the bubbles-bot-gh/fast-forward action.
+# It checksout the head reference of the pull request the workflow is run on, and then runs the 
+# .github/actions/action.yml file.
+
 name: Bubbles-Bot-GH Fast-Forward
 
 on:
@@ -17,15 +21,17 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
-  
+
 jobs:
+  # This job checksout the head of the pull request and runs the fast-forward action on it.
   fast-forward:
     runs-on: ubuntu-latest
+    environment: ci-testing
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.ref }}
         
       - name: Fast-Forward
         uses: ./action.yml
@@ -34,11 +40,13 @@ jobs:
           post_comment: "always"
           custom_command: "/fast-forward"
       
+  # This job cleans up 
   cleanup:
     needs:
       - fast-forward
     if: always() && startsWith(github.event.pull_request.head.ref, 'ci-test/')
     runs-on: ubuntu-latest
+    environment: ci-testing
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
