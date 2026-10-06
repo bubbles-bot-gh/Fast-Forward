@@ -30,12 +30,7 @@ internal class Program
         
         // Using the webhook event, set up services
         IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
-        builder.Services
-            .AddOptionsWithValidateOnStart<Config>()
-            .BindConfiguration(nameof(Config))
-            .Validate(config => !string.IsNullOrWhiteSpace(config.IdRequestTokenEnvName)
-                && !string.IsNullOrWhiteSpace(config.SupabaseRequestTokenUrl)
-                && !string.IsNullOrWhiteSpace(config.IdRequestUrlEnvName));
+        builder.Services.AddAppConfig(builder.Configuration);
         builder.Services.AddAppServices(webhookEvent, eventType);
         IServiceProvider services = builder.Services.BuildServiceProvider();
         
