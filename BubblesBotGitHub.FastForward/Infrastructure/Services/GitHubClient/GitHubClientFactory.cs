@@ -10,7 +10,8 @@ namespace BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 
 internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient) : IGitHubClientFactory
 {
-    private const string RequestTokenUrl = "https://aathdejntmbwopbxmrzv.supabase.co/functions/v1/gh-app-auth";
+    private readonly string _requestTokenUrl = opts.Value.SupabaseRequestTokenUrl;
+    
     public IGitHubClient Create()
     {
         string oidcToken = GetOidcToken();
@@ -28,10 +29,10 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
     {
         // Extract OIDC related vars
         // "permissions.id-token" must be set to "write" in the user workflow in order for this to function
-        string reqToken = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN") 
+        string reqToken = Environment.GetEnvironmentVariable(opts.Value.IdRequestTokenEnvName) 
             ?? throw new InvalidOperationException("ID token not set");
         
-        string reqUrl = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_URL") 
+        string reqUrl = Environment.GetEnvironmentVariable(opts.Value.IdRequestUrlEnvName) 
             ?? throw new InvalidOperationException("URL not set");
         
         HttpRequestMessage msg = new(HttpMethod.Get, $"{reqUrl}&audience=bubbles-bot-gh-aud");
@@ -49,11 +50,12 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
 
     private string GetInstallationToken(string oidcToken)
     {
-        HttpRequestMessage msg = new(HttpMethod.Post, RequestTokenUrl)
+        HttpRequestMessage msg = new(HttpMethod.Post, _requestTokenUrl)
         {
             Content = JsonContent.Create(new { token = oidcToken })
         };
 
+        msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oidcToken);
         HttpResponseMessage res = httpClient.Send(msg);
         res.EnsureSuccessStatusCode();
         

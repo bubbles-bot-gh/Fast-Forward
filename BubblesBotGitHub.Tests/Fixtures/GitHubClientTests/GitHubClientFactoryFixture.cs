@@ -21,6 +21,11 @@ public sealed class GitHubClientFactoryFixture
     public readonly string RequestUrlEnvValue = "https://pipelines.actions.githubusercontent.com/id-token?api-version=2.0";
 
     public readonly Mock<HttpMessageHandler> MockHttpHandler = new(MockBehavior.Strict);
-    private readonly IOptions<Config> _optionsMock = new Mock<IOptions<Config>>().Object;
+    private readonly IOptions<Config> _optionsMock = Options.Create(new Config
+    {
+        IdRequestTokenEnvName = "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+        SupabaseRequestTokenUrl = "https://aathdejntmbwopbxmrzv.supabase.co/functions/v1/gh-app-auth",
+        IdRequestUrlEnvName = "ACTIONS_ID_TOKEN_REQUEST_URL",
+    });
     internal IGitHubClientFactory GetFactory(HttpClient client) => new GitHubClientFactory(_optionsMock, client);
 }

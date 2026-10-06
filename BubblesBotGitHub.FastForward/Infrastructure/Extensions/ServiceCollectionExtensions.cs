@@ -1,5 +1,6 @@
 using BubblesBotGitHub.FastForward.Application;
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
