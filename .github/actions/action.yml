@@ -44,6 +44,6 @@ runs:
         INPUT_POST_COMMENT: ${{ inputs.post_comment }}
         INPUT_CUSTOM_COMMAND: ${{ inputs.custom_command }}
       run: |
-        dotnet run -c Release
+        dotnet run -c Release \
         --project "${{ github.action_path }}../../BubblesBotGitHub.FastForward/BubblesBotGitHub.FastForward.csproj"
       
