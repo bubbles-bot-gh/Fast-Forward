@@ -21,18 +21,13 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
         <PackageReference Include="Octokit" Version="14.0.0"/>
         <PackageReference Include="Octokit.Webhooks" Version="4.2.0" />
+        <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
     </ItemGroup>
     
     <ItemGroup>
         <InternalsVisibleTo Include="BubblesBotGitHub.Tests" />
         <InternalsVisibleTo Include="BubblesBotGitHub.Tests.Integration" />
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Reference Include="JetBrains.Annotations">
-        <HintPath>..\..\..\home\vscode\.nuget\packages\jetbrains.annotations\2026.2.0\lib\netstandard2.0\JetBrains.Annotations.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
 </Project>
