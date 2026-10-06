@@ -30,8 +30,8 @@ internal class Program
         
         // Using the webhook event, set up services
         IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
+        builder.Services.AddAppConfig(builder.Configuration);
         builder.Services.AddAppServices(webhookEvent, eventType);
-        builder.Services.Configure<Config>(builder.Configuration.GetSection(nameof(Config)));
         IServiceProvider services = builder.Services.BuildServiceProvider();
         
         IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
