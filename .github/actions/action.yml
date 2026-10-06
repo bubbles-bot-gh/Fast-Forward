@@ -32,6 +32,18 @@ inputs:
       "The command to be used to trigger the workflow."
 
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - shell: bash
+      env:
+        INPUT_AUTO_MERGE: ${{ inputs.auto_merge }}
+        INPUT_POST_COMMENT: ${{ inputs.post_comment }}
+        INPUT_CUSTOM_COMMAND: ${{ inputs.custom_command }}
+      run: |
+        dotnet run -c Release
+        --project "${{ github.action_path }}../../BubblesBotGitHub.FastForward/BubblesBotGitHub.FastForward.csproj"
       
