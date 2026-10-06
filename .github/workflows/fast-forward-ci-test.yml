@@ -57,7 +57,7 @@ jobs:
           gh pr close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" || true
           
           git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
-            --delete "${{ github.event.pull_request.head_ref }}" || true
+            --delete "${{ github.event.pull_request.head.ref }}" || true
           
-          git push "https://x-access-token; ${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
-            --delete "${{ github.event.pull_request.base_ref }}" || true
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            --delete "${{ github.event.pull_request.base.ref }}" || true

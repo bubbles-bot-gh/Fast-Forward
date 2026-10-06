@@ -29,7 +29,11 @@ internal class Program
         (WebhookEvent webhookEvent, ActionEventType eventType) = ParseWebhookEvent(eventName, json);
         
         // Using the webhook event, set up services
-        IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
+        IHostApplicationBuilder builder = Host.CreateApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                ContentRootPath = AppContext.BaseDirectory
+            });
         builder.Services.AddAppConfig(builder.Configuration);
         builder.Services.AddAppServices(webhookEvent, eventType);
         IServiceProvider services = builder.Services.BuildServiceProvider();
