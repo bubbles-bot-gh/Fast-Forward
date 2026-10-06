@@ -29,6 +29,8 @@ jobs:
         
       - name: Fast-Forward
         uses: ./.github/actions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
           auto_merge: true
           post_comment: "always"

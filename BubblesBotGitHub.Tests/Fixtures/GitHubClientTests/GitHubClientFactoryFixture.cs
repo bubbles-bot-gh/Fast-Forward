@@ -27,5 +27,6 @@ public sealed class GitHubClientFactoryFixture
         SupabaseRequestTokenUrl = "https://aathdejntmbwopbxmrzv.supabase.co/functions/v1/gh-app-auth",
         IdRequestUrlEnvName = "ACTIONS_ID_TOKEN_REQUEST_URL",
     });
+
     internal IGitHubClientFactory GetFactory(HttpClient client) => new GitHubClientFactory(_optionsMock, client);
 }
