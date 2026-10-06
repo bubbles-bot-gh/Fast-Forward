@@ -82,7 +82,16 @@ internal class Program
     private static (WebhookEvent webhookEvent, ActionEventType eventType) ParseWebhookEvent(string eventName, 
         string json)
     {
-        return eventName switch
+        string? action = null;
+        if (eventPath is not null && File.Exists(eventPath)) {
+            using JsonDocument doc = JsonDocument.Parse(File.ReadAllText(eventPath));
+            if(doc.RootElement.TryGetProperty("action", out JsonElement a))
+                action = a.GetString();
+        }
+
+        string? specificEvent = action is null ? eventName : $"{eventName}_{action}";
+        
+        return specificEvent switch
         {
             "pull_request_opened" => (DeserializeWebhookEvent<PullRequestOpenedEvent>(json), 
                 ActionEventType.PullRequestOpened),
@@ -90,7 +99,7 @@ internal class Program
                 ActionEventType.IssueCommentEdited),
             "issue_comment_created" => (DeserializeWebhookEvent<IssueCommentCreatedEvent>(json),
                 ActionEventType.IssueCommentCreated),
-            _ => throw new NotSupportedException($"Unsupported event type: {eventName}")
+            _ => throw new NotSupportedException($"Unsupported event type: {specificEvent}")
         };
     }
 
