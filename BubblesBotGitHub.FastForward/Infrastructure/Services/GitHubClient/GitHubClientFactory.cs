@@ -54,8 +54,7 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         {
             Content = JsonContent.Create(new { token = oidcToken })
         };
-
-        msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oidcToken);
+        
         HttpResponseMessage res = httpClient.Send(msg);
         res.EnsureSuccessStatusCode();
         
