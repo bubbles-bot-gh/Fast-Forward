@@ -35,7 +35,7 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         string reqUrl = Environment.GetEnvironmentVariable(opts.Value.IdRequestUrlEnvName) 
             ?? throw new InvalidOperationException("URL not set");
         
-        HttpRequestMessage msg = new(HttpMethod.Get, $"{reqUrl}&audience=bubbles-bot-gh-aud");
+        HttpRequestMessage msg = new(HttpMethod.Get, $"{reqUrl}&audience={opts.Value.Audience}");
         msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", reqToken);
 
         HttpResponseMessage res = httpClient.Send(msg);
