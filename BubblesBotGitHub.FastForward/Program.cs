@@ -23,15 +23,19 @@ internal class Program
             ?? throw new InvalidOperationException("Missing environment variable GITHUB_ACTION_EVENT");
         string eventName = Environment.GetEnvironmentVariable("GITHUB_EVENT_NAME")
             ?? throw new InvalidOperationException("Missing environment variable GITHUB_EVENT_NAME");
-        string json = await File.ReadAllTextAsync(eventPath);
+        JsonDocument json = JsonDocument.Parse(await File.ReadAllTextAsync(eventPath));
         
         // Determine the event type
         (WebhookEvent webhookEvent, ActionEventType eventType) = ParseWebhookEvent(eventName, json);
         
         // Using the webhook event, set up services
-        IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
+        IHostApplicationBuilder builder = Host.CreateApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                ContentRootPath = AppContext.BaseDirectory
+            });
+        builder.Services.AddAppConfig(builder.Configuration);
         builder.Services.AddAppServices(webhookEvent, eventType);
-        builder.Services.Configure<Config>(builder.Configuration.GetSection(nameof(Config)));
         IServiceProvider services = builder.Services.BuildServiceProvider();
         
         IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
@@ -80,14 +84,12 @@ internal class Program
     }
 
     private static (WebhookEvent webhookEvent, ActionEventType eventType) ParseWebhookEvent(string eventName, 
-        string json)
+        JsonDocument json)
     {
         string? action = null;
-        if (eventPath is not null && File.Exists(eventPath)) {
-            using JsonDocument doc = JsonDocument.Parse(File.ReadAllText(eventPath));
-            if(doc.RootElement.TryGetProperty("action", out JsonElement a))
-                action = a.GetString();
-        }
+        if(json.RootElement.TryGetProperty("action", out JsonElement a))
+            action = a.GetString();
+
 
         string? specificEvent = action is null ? eventName : $"{eventName}_{action}";
         
@@ -103,8 +105,8 @@ internal class Program
         };
     }
 
-    private static TWebhookEvent DeserializeWebhookEvent<TWebhookEvent>(string json)
+    private static TWebhookEvent DeserializeWebhookEvent<TWebhookEvent>(JsonDocument json)
         where TWebhookEvent : WebhookEvent =>
-            JsonSerializer.Deserialize<TWebhookEvent>(json)
+            json.Deserialize<TWebhookEvent>()
             ?? throw new JsonException($"Failed to deserialize webhook event as {typeof(TWebhookEvent).Name}");
 }

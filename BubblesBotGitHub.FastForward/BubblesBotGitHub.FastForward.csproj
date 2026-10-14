@@ -25,6 +25,10 @@
     </ItemGroup>
     
     <ItemGroup>
+        <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+    
+    <ItemGroup>
         <InternalsVisibleTo Include="BubblesBotGitHub.Tests" />
         <InternalsVisibleTo Include="BubblesBotGitHub.Tests.Integration" />
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
