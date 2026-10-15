@@ -18,7 +18,7 @@ public sealed class GitHubClientFactoryFixture
     public readonly string GitHubUserContentHost = "actions.githubusercontent.com";
     public readonly string SupabaseHost = "supabase.co";
     public readonly string MockOidcValue = """{"value":"fake-oidc-123"}""";
-    public readonly string MockInstallationTokenValue = """{"value":"fake-installation-token-123"}""";
+    public readonly string MockInstallationTokenValue = """{"token":"fake-installation-token-123"}""";
     
     // TODO: Is this the right resource?
     public readonly string RequestUrlEnvValue = "https://pipelines.actions.githubusercontent.com/id-token?api-version=2.0";
