@@ -62,7 +62,7 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         string json = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         using JsonDocument doc = JsonDocument.Parse(json);
         
-        return doc.RootElement.GetProperty("value").GetString()
-            ?? throw new InvalidOperationException("Installation token response has no 'value' field");
+        return doc.RootElement.GetProperty("token").GetString()
+            ?? throw new InvalidOperationException("Installation token response has no 'token' field");
     }
 }
