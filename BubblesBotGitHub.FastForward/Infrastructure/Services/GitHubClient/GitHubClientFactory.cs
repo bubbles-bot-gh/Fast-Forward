@@ -56,7 +56,7 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         };
 
         Console.WriteLine(msg.Content.ReadAsStringAsync().GetAwaiter().GetResult());
-        msg.Headers.Add("apikey", "sb_publishable_koGK-4yJeFl1WqkIOXQODA_-4TOhWA6");
+        msg.Headers.Add("apikey", opts.Value.SupabasePublishableKey);
         HttpResponseMessage res = httpClient.Send(msg);
         res.EnsureSuccessStatusCode();
         
