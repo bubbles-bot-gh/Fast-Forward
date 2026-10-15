@@ -48,7 +48,7 @@ internal class Program
             Console.WriteLine("::info::Command not invoked. Skipping...");
 
         // Clone repo
-        await git.CloneRepoAsync(actionInfo.RepoInfo.CloneUrl, "./tmp");
+        await git.CloneRepoAsync(actionInfo.RepoInfo.CloneUrl, "/tmp");
         
         // Create comment
         string comment = await commentBuilder.Build();

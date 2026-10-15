@@ -29,7 +29,7 @@ public sealed class GitHubClientFactoryFixture
     {
        IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
        builder.Services.AddAppConfig(builder.Configuration);
-       IOptions<Config> config = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<Config>>(); 
+       IOptions<Config> config = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<Config>>();
        
        return new GitHubClientFactory(config, client);
     }

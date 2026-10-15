@@ -78,11 +78,11 @@ public class PrInfoFixture
         Mock<IGitHubClient> mockGitHubClient = new Mock<IGitHubClient>(MockBehavior.Strict);
         
         mockGit
-            .Setup(git => git.GetMergeBaseSha(BaseSha, HeadSha))
+            .Setup(git => git.GetMergeBaseSha(BaseSha, HeadSha, "/tmp"))
             .ReturnsAsync(BaseSha);
         
         mockGit
-            .Setup(git => git.GetAmountOfParents(BaseSha))
+            .Setup(git => git.GetAmountOfParents(BaseSha, "/tmp"))
             .ReturnsAsync(MergeBaseParents);
         
         MockServices mockServices = new() { MockGit = mockGit, MockPrInfo = null, MockActionInfo = null, MockActionInfoFactory = null };
