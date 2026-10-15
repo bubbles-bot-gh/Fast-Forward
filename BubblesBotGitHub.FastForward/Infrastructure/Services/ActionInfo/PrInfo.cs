@@ -60,8 +60,8 @@ internal sealed record PrInfo : IPrInfo
         HeadRef = eventData.PullRequest.Head.Ref;
         HeadSha = eventData.PullRequest.Head.Sha;
         HeadLabel = eventData.PullRequest.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha);
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha);
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, "/tmp");
+        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, "/tmp");
         PrNodeId = eventData.PullRequest.NodeId;
         IssueNumber = eventData.PullRequest.Number;
         BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
@@ -106,8 +106,8 @@ internal sealed record PrInfo : IPrInfo
         HeadRef = pr.Head.Ref;
         HeadSha = pr.Head.Sha;
         HeadLabel = pr.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha);
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(BaseSha);
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, "/tmp");
+        MergeBaseParentsAmount = await _git.GetAmountOfParents(BaseSha, "/tmp");
         PrNodeId = pr.NodeId;
         BaseNodeId = pr.Base.NodeId;
     }
