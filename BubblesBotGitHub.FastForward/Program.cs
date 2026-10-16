@@ -7,6 +7,7 @@ using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
@@ -40,7 +41,8 @@ internal class Program
         
         IRepoInfo repoInfo = services.GetRequiredService<IRepoInfo>();
         IGit git = services.GetRequiredService<IGit>();
-        await git.CloneRepoAsync(repoInfo.CloneUrl, "/tmp");
+        IOptions<Config> opts = services.GetRequiredService<IOptions<Config>>();
+        await git.CloneRepoAsync(repoInfo.CloneUrl, opts.Value.WorkingDir);
         
         IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
         IGitHubClient gitHubClient = services.GetRequiredService<IGitHubClient>();

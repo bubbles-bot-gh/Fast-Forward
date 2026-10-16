@@ -1,14 +1,16 @@
 using System.Runtime.CompilerServices;
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+using Microsoft.Extensions.Options;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
-internal sealed record PrInfo : IPrInfo
+internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
 {
     private IGit _git = null!;
     private IGitHubClient _gitHubClient = null!;
@@ -60,8 +62,8 @@ internal sealed record PrInfo : IPrInfo
         HeadRef = eventData.PullRequest.Head.Ref;
         HeadSha = eventData.PullRequest.Head.Sha;
         HeadLabel = eventData.PullRequest.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, "/tmp");
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, "/tmp");
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, Opts.Value.WorkingDir);
+        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, Opts.Value.WorkingDir);
         PrNodeId = eventData.PullRequest.NodeId;
         IssueNumber = eventData.PullRequest.Number;
         BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
@@ -106,8 +108,8 @@ internal sealed record PrInfo : IPrInfo
         HeadRef = pr.Head.Ref;
         HeadSha = pr.Head.Sha;
         HeadLabel = pr.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, "/tmp");
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(BaseSha, "/tmp");
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, Opts.Value.WorkingDir);
+        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, Opts.Value.WorkingDir);
         PrNodeId = pr.NodeId;
         BaseNodeId = pr.Base.NodeId;
     }
