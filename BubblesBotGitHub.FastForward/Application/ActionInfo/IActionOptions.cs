@@ -1,4 +1,4 @@
-namespace BubblesBotGitHub.FastForward.Application.Interfaces;
+namespace BubblesBotGitHub.FastForward.Application.ActionInfo;
 
 public interface IActionOptions
 {

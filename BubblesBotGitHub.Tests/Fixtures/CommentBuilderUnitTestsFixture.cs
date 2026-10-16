@@ -1,3 +1,4 @@
+using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Octokit;
-using Octokit.Webhooks;
 using Octokit.Webhooks.Events.PullRequest;
 using IGitHubClient = BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient.IGitHubClient;
 #pragma warning disable CS8618
