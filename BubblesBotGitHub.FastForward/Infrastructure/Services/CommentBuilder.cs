@@ -1,10 +1,12 @@
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Entities;
+using Microsoft.Extensions.Options;
 using Octokit;
 using IGitHubClient = BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient.IGitHubClient;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services;
 
-public class CommentBuilder(IActionInfo actionInfo, IGitHubClient gitHubClient, IGit git) : ICommentBuilder
+public class CommentBuilder(IOptions<Config> opts, IActionInfo actionInfo, IGitHubClient gitHubClient, IGit git) : ICommentBuilder
 {
     private readonly string _baseFullRef = $"{actionInfo.PrInfo.BaseRef} ({actionInfo.PrInfo.BaseSha})";
     private readonly string _headFullRef = $"{actionInfo.PrInfo.HeadRef} ({actionInfo.PrInfo.HeadSha})";
@@ -78,7 +80,7 @@ public class CommentBuilder(IActionInfo actionInfo, IGitHubClient gitHubClient, 
             : string.Empty;
         
         result.AddRange([
-            await git.LogCommitGraph(exclude, actionInfo.PrInfo.BaseSha, actionInfo.PrInfo.HeadSha, "./tmp"),
+            await git.LogCommitGraph(exclude, actionInfo.PrInfo.BaseSha, actionInfo.PrInfo.HeadSha, opts.Value.WorkingDir),
             $"Rebase {actionInfo.PrInfo.HeadRef} onto {actionInfo.PrInfo.BaseRef} "
             + $"and then force push to {actionInfo.PrInfo.HeadRef}"
         ]);
