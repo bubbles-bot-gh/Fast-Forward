@@ -63,6 +63,9 @@ public static class ServiceCollectionExtensions
                 .AddScoped<IActionInfo>(provider =>
                 {
                     IActionInfoFactory factory = provider.GetRequiredService<IActionInfoFactory>();
+                    IGit git = provider.GetRequiredService<IGit>();
+                    IRepoInfo repoInfo = provider.GetRequiredService<IRepoInfo>();
+                    git.CloneRepoAsync(repoInfo.CloneUrl, "/tmp");
                     
                     return factory.Create().Result;
                 });

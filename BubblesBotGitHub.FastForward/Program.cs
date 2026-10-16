@@ -46,9 +46,6 @@ internal class Program
         // Was custom command invoked?
         if (!actionInfo.EventInfo.CommandInvoked)
             Console.WriteLine("::info::Command not invoked. Skipping...");
-
-        // Clone repo
-        await git.CloneRepoAsync(actionInfo.RepoInfo.CloneUrl, "/tmp");
         
         // Create comment
         string comment = await commentBuilder.Build();
