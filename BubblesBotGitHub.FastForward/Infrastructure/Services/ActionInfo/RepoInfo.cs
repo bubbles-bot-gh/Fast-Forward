@@ -1,10 +1,11 @@
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
-internal class RepoInfo : IRepoInfo
+internal class RepoInfo(WebhookEvent webhookEvent) : IRepoInfo
 {
-    public string Name { get; }
-    public string Owner { get; }
-    public string CloneUrl { get; }
+    public string Name { get; } = webhookEvent.Repository?.Name ?? string.Empty;
+    public string Owner { get; } = webhookEvent.Repository?.Owner.Login ?? string.Empty;
+    public string CloneUrl { get; } = webhookEvent.Repository?.CloneUrl ?? string.Empty;
 }
