@@ -1,10 +1,12 @@
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 using BubblesBotGitHub.Tests.Entities;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using Octokit;
 using Octokit.Webhooks;
@@ -24,6 +26,7 @@ public class CommentBuilderUnitTestsFixture
     public Mock<IRepoInfo> RepoInfoMock { get; } = new(MockBehavior.Strict);
     public Mock<IGitHubClient> GitHubClientMock { get; } = new(MockBehavior.Strict);
     public Mock<IGit> GitMock { get; } = new(MockBehavior.Strict);
+    public IOptions<Config> Config { get; private set; }
 
     public string BaseRef;
     public string BaseSha;
@@ -75,13 +78,35 @@ public class CommentBuilderUnitTestsFixture
     {
         Reset();
     }
-
+    
     public ICommentBuilder CreateSubject()
+    {
+        SetupActionOptionsMock();
+        SetupPrInfoMock();
+        SetupRepoInfoMock();
+        SetupEventInfoMock();
+        SetupGithubClientMock();
+        SetupGitMock();
+        SetupConfigMock();
+        
+        Mock<IActionInfo> actionInfoMock = new(MockBehavior.Strict);
+        actionInfoMock.SetupGet(m => m.PrInfo).Returns(PrInfoMock.Object);
+        actionInfoMock.SetupGet(m => m.RepoInfo).Returns(RepoInfoMock.Object);
+        actionInfoMock.SetupGet(m => m.EventInfo).Returns(EventInfoMock.Object);
+        actionInfoMock.SetupGet(m => m.ActionOptions).Returns(ActionOptionsMock.Object);
+        
+        return new CommentBuilder(Config, actionInfoMock.Object, GitHubClientMock.Object, GitMock.Object);
+    }
+
+    private void SetupActionOptionsMock()
     {
         ActionOptionsMock.SetupGet(m => m.CustomCommand).Returns(CustomCommand);
         ActionOptionsMock.SetupGet(m => m.IsAutoMerge).Returns(IsAutoMerge);
         ActionOptionsMock.SetupGet(m => m.PostComment).Returns(PostComment);
-        
+    }
+
+    private void SetupPrInfoMock()
+    {
         PrInfoMock.SetupGet(m => m.BaseRef).Returns(BaseRef);
         PrInfoMock.SetupGet(m => m.BaseSha).Returns(BaseSha);
         PrInfoMock.SetupGet(m => m.HeadRef).Returns(HeadRef);
@@ -90,34 +115,46 @@ public class CommentBuilderUnitTestsFixture
         PrInfoMock.SetupGet(m => m.HeadRepoName).Returns(HeadRepoName);
         PrInfoMock.SetupGet(m => m.MergeBaseSha).Returns(MergeBaseSha);
         PrInfoMock.SetupGet(m => m.MergeBaseParentsAmount).Returns(MergeBaseParentsAmount);
+    }
 
+    private void SetupRepoInfoMock()
+    {
         RepoInfoMock.SetupGet(m => m.Owner).Returns(BaseRepoOwner);
         RepoInfoMock.SetupGet(m => m.Name).Returns(BaseRepoName);
+    }
 
+    private void SetupEventInfoMock()
+    {
         EventInfoMock.SetupGet(m => m.IsPossible).Returns(IsPossible);
         EventInfoMock.SetupGet(m => m.UserHasPerms).Returns(Task.FromResult(UserHasPerms));
         EventInfoMock.SetupGet(m => m.CommandInvoked).Returns(CommandInvoked);
         EventInfoMock.SetupGet(m => m.User).Returns(UserName);
         EventInfoMock.SetupGet(m => m.ShouldExit).Returns(ShouldExit);
         EventInfoMock.SetupSet(m => m.ShouldExit = It.IsAny<bool>());
+    }
 
+    private void SetupGithubClientMock()
+    {
         GitHubClientMock.Setup(m => m.GetCommit(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Commit);
+    }
 
+    private void SetupGitMock()
+    {
         GitMock.Setup(m => m.LogCommitGraph(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string>()))
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
             .ReturnsAsync(GraphOutput);
-        
-        Mock<IActionInfo> actionInfoMock = new(MockBehavior.Strict);
-        actionInfoMock.SetupGet(m => m.PrInfo).Returns(PrInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.RepoInfo).Returns(RepoInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.EventInfo).Returns(EventInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.ActionOptions).Returns(ActionOptionsMock.Object);
-        
-        return new CommentBuilder(actionInfoMock.Object, GitHubClientMock.Object, GitMock.Object);
+    }
+
+    private void SetupConfigMock()
+    {
+        IServiceProvider services = AssemblyFixture
+            .CreateServiceCollectionWithMocks(TestEvent, ActionEventType.PullRequestOpened, new MockServices());
+
+        Config = services.GetRequiredService<IOptions<Config>>();
     }
 }
