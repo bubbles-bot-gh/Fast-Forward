@@ -38,17 +38,17 @@ internal class Program
         builder.Services.AddAppServices(webhookEvent, eventType);
         IServiceProvider services = builder.Services.BuildServiceProvider();
         
-        IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
+        IRepoInfo repoInfo = services.GetRequiredService<IRepoInfo>();
         IGit git = services.GetRequiredService<IGit>();
+        await git.CloneRepoAsync(repoInfo.CloneUrl, "/tmp");
+        
+        IActionInfo actionInfo = services.GetRequiredService<IActionInfo>();
         IGitHubClient gitHubClient = services.GetRequiredService<IGitHubClient>();
         ICommentBuilder commentBuilder = services.GetRequiredService<ICommentBuilder>();
         
         // Was custom command invoked?
         if (!actionInfo.EventInfo.CommandInvoked)
             Console.WriteLine("::info::Command not invoked. Skipping...");
-
-        // Clone repo
-        await git.CloneRepoAsync(actionInfo.RepoInfo.CloneUrl, "/tmp");
         
         // Create comment
         string comment = await commentBuilder.Build();
