@@ -1,4 +1,4 @@
-using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Application.ActionInfo;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
