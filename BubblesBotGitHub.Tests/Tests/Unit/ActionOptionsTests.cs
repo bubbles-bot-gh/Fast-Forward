@@ -3,16 +3,18 @@ using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Infrastructure.Extensions;
 using BubblesBotGitHub.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.Tests.Tests.Unit;
 
 public sealed class ActionOptionsTests(ActionOptionsFixture classFixture) : IClassFixture<ActionOptionsFixture>
 {
-    [Fact]
-    public void SuccessfullySetsIsAutoMerge()
+    [Theory] 
+    [MemberData(nameof(ActionOptionsFixture.TheoryData), MemberType = typeof(ActionOptionsFixture))]
+    public void SuccessfullySetsIsAutoMerge(WebhookEvent webhookEvent)
     {
         IServiceProvider provider = new ServiceCollection()
-            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
+            .AddAppServices(webhookEvent, classFixture.EventType)
             .BuildServiceProvider();
 
         IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();
@@ -20,11 +22,12 @@ public sealed class ActionOptionsTests(ActionOptionsFixture classFixture) : ICla
         Assert.Equal(classFixture.AutoMergeValue, actionOptions.IsAutoMerge);
     }
 
-    [Fact]
-    public void SuccessfullySetsCustomCommand()
+    [Theory] 
+    [MemberData(nameof(ActionOptionsFixture.TheoryData), MemberType = typeof(ActionOptionsFixture))]
+    public void SuccessfullySetsCustomCommand(WebhookEvent webhookEvent)
     {
         IServiceProvider provider = new ServiceCollection()
-            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
+            .AddAppServices(webhookEvent, classFixture.EventType)
             .BuildServiceProvider();
         
         IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();
@@ -32,11 +35,12 @@ public sealed class ActionOptionsTests(ActionOptionsFixture classFixture) : ICla
         Assert.Equal(classFixture.CustomCommandValue, actionOptions.CustomCommand);
     }
 
-    [Fact]
-    public void SuccessfullySetsPostComment()
+    [Theory] 
+    [MemberData(nameof(ActionOptionsFixture.TheoryData), MemberType = typeof(ActionOptionsFixture))]
+    public void SuccessfullySetsPostComment(WebhookEvent webhookEvent)
     {
         IServiceProvider provider = new ServiceCollection()
-            .AddAppServices(classFixture.WebhookEvent, classFixture.EventType)
+            .AddAppServices(webhookEvent, classFixture.EventType)
             .BuildServiceProvider();
         
         IActionOptions actionOptions = provider.GetRequiredService<IActionOptions>();

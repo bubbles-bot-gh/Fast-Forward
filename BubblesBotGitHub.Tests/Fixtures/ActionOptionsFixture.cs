@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using JetBrains.Annotations;
-using Octokit.Webhooks.Events.PullRequest;
+using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.Tests.Fixtures;
 
@@ -12,10 +12,10 @@ public class ActionOptionsFixture : IAsyncLifetime
     private const string AutoMergeEnvName = "INPUT_AUTO_MERGE";
     private const string PostCommentEnvName = "INPUT_POST_COMMENT";
     private const string CustomCommandEnvName = "INPUT_CUSTOM_COMMAND";
+
     public readonly bool AutoMergeValue = true;
     public readonly string CustomCommandValue = "/fast-forward";
     public readonly string PostCommentValue = "always";
-    public readonly PullRequestOpenedEvent WebhookEvent = AssemblyFixture.GetPullRequestOpenedEvent();
     public readonly ActionEventType EventType = ActionEventType.PullRequestOpened;
     
     public ValueTask InitializeAsync()
@@ -36,4 +36,11 @@ public class ActionOptionsFixture : IAsyncLifetime
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }
+
+    public static TheoryData<WebhookEvent> TheoryData =>
+    [
+        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetPullRequestOpenedEvent()),
+        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetIssueCommentCreatedEvent()),
+        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetIssueCommentEditedEvent())
+    ];
 }
