@@ -24,6 +24,7 @@ internal sealed class EventInfo : IEventInfo
     {
         CommentBody = (webhookEvent as PullRequestOpenedEvent)?.PullRequest.Body
             ?? (webhookEvent as IssueCommentCreatedEvent)?.Comment.Body 
+            ?? (webhookEvent as IssueCommentEditedEvent)?.Comment.Body
             ?? string.Empty;
         CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
         User = webhookEvent.Sender?.Login ?? string.Empty;

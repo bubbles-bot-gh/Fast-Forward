@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Core.Enums;
@@ -7,6 +9,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Octokit.Webhooks;
+using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
 
 namespace BubblesBotGitHub.Tests.Fixtures;
@@ -14,91 +17,81 @@ namespace BubblesBotGitHub.Tests.Fixtures;
 [UsedImplicitly]
 public sealed class EventInfoFixture
 {
-    private static readonly string CustomCommand = AssemblyFixture.CustomCommand;
+    private static readonly string DefaultCustomCommand = "/fast-forward";
     private static readonly bool CommandInvoked = true;
-    private static readonly bool IsCollaborator = true;
-
-    // PullRequestOpenedEvent
-    private static readonly PullRequestOpenedEvent PrOpenedEvent = AssemblyFixture.GetPullRequestOpenedEvent();
-    private static readonly string PrOpenedCommentBody = PrOpenedEvent.PullRequest.Body 
-        ?? throw new InvalidOperationException("Body unexpectedly null. Is event JSON correct?");
-
-    public static TheoryData<IEventInfo, IEventInfo> TheoryData =>
+    private static readonly bool DefaultIsCollaborator = true;
+    private static readonly PullRequestOpenedEvent PullRequestOpenedEvent = AssemblyFixture.GetPullRequestOpenedEvent();
+    private static readonly IssueCommentCreatedEvent IssueCommentCreatedEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
+    private static readonly IssueCommentEditedEvent IssueCommentEditedEvent = AssemblyFixture.GetIssueCommentEditedEvent();
+    
+    public static TheoryData<WebhookEvent, ActionEventType> TheoryData =>
     [
-        new TheoryDataRow<IEventInfo, IEventInfo>(
-            SetUpExpected(
-                PrOpenedEvent, 
-                ActionEventType.PullRequestOpened, 
-                PrOpenedCommentBody), 
-            SetUpActual(
-                PrOpenedEvent, 
-                ActionEventType.PullRequestOpened))
+        new TheoryDataRow<WebhookEvent, ActionEventType>(PullRequestOpenedEvent, ActionEventType.PullRequestOpened),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(IssueCommentCreatedEvent, ActionEventType.IssueCommentCreated),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(IssueCommentEditedEvent, ActionEventType.IssueCommentEdited)
     ];
 
-    private static IEventInfo SetUpExpected(WebhookEvent webhookEvent, ActionEventType eventType, string commentBody)
+    public IServiceProvider CreateServiceProviderWithMocks(
+        WebhookEvent webhookEvent, 
+        ActionEventType eventType, 
+        MockServices? mockServices = null)
     {
-        Mock<IEventInfo> mockEventInfo = new(MockBehavior.Strict);
-
-        mockEventInfo
-            .SetupGet(eventInfo => eventInfo.CommentBody)
-            .Returns(commentBody);
-
-        mockEventInfo
-            .SetupGet(eventInfo => eventInfo.CommandInvoked)
-            .Returns(CommandInvoked);
+        // Check for overrides
+        if (mockServices is not null)
+            return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices);
         
-        MockServices mockServices = new()
+        // Use default mocks
+        MockServices services = new()
         {
-            MockEventInfo = mockEventInfo
-        };
-
-        IEventInfo expected = AssemblyFixture
-            .CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
-            .GetRequiredService<IEventInfo>();
-
-        return expected;
-    }
-
-    private static IEventInfo SetUpActual(WebhookEvent webhookEvent, ActionEventType eventType)
-    {
-        Mock<IActionOptions> mockOptions = new(MockBehavior.Strict);
-        Mock<IRepoInfo> mockRepoInfo = new(MockBehavior.Strict);
-        Mock<IGitHubClient> mockGitHubClient = new(MockBehavior.Strict);
-
-        string owner = webhookEvent.Repository?.Owner.Login
-            ?? throw new InvalidOperationException("Repository unexpectedly null. Is event JSON correct?");
-        string name = webhookEvent.Repository.Name;
-        string user = webhookEvent.Sender?.Login
-            ?? throw new InvalidOperationException("Sender unexpectedly null. Is event JSON correct?");
-
-        mockOptions
-            .SetupGet(options => options.CustomCommand)
-            .Returns(CustomCommand);
-
-        mockRepoInfo
-            .SetupGet(repoInfo => repoInfo.Owner)
-            .Returns(owner);
-
-        mockRepoInfo
-            .SetupGet(repoInfo => repoInfo.Name)
-            .Returns(name);
-
-        mockGitHubClient
-            .Setup(caller => caller.IsCollaborator(owner, name, user))
-            .ReturnsAsync(() => IsCollaborator);
-        
-        MockServices mockServices = new()
-        {
-            MockActionOptions = mockOptions,
-            MockRepoInfo = mockRepoInfo,
-            MockGitHubClient = mockGitHubClient,
+            MockActionOptions = new(MockBehavior.Strict),
+            MockRepoInfo = new(MockBehavior.Strict),
+            MockGitHubClient = new(MockBehavior.Strict),
             MockEventInfo = null
         };
+
+        // Set up ActionOptions mock
+        services.MockActionOptions.Setup(m => m.CustomCommand).Returns(DefaultCustomCommand);
         
-        IEventInfo actual = AssemblyFixture
-            .CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
-            .GetRequiredService<IEventInfo>();
+        // Set up RepoInfo mock
+        string owner = webhookEvent.Repository?.Owner.Login 
+            ?? throw new InvalidOperationException("Repository unexpectedly null. Is event JSON correct?");
+        string repoName = webhookEvent.Repository.Name;
         
-        return actual;
+        services.MockRepoInfo.SetupGet(m => m.Owner).Returns(owner);
+        services.MockRepoInfo.SetupGet(m => m.Name).Returns(repoName);
+        
+        // Set up GitHubClient mock
+        string user = webhookEvent.Sender?.Login
+            ?? throw new InvalidOperationException("Sender unexpectedly null. Is event JSON correct?");
+        services.MockGitHubClient
+            .Setup(m => m.IsCollaborator(owner, repoName, user))
+            .ReturnsAsync(() => DefaultIsCollaborator);
+
+        return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, services);
+    }
+
+    public string GetCommentBody(WebhookEvent webhookEvent, ActionEventType eventType)
+    {
+        string commentBody = string.Empty;
+        switch (eventType)
+        {
+            case ActionEventType.PullRequestOpened:
+                commentBody = (webhookEvent as PullRequestOpenedEvent)?.PullRequest.Body
+                    ?? throw new InvalidOperationException();
+                
+                break;
+            case ActionEventType.IssueCommentCreated:
+                commentBody = (webhookEvent as IssueCommentCreatedEvent)?.Comment.Body
+                    ?? throw new InvalidOperationException();
+
+                break;
+            case ActionEventType.IssueCommentEdited:
+                commentBody = (webhookEvent as IssueCommentEditedEvent)?.Comment.Body
+                    ?? throw new InvalidOperationException();
+
+                break;
+        }
+
+        return commentBody;
     }
 }
