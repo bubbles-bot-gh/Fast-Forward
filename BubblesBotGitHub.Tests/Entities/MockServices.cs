@@ -19,28 +19,5 @@ public class MockServices
     public Mock<IActionInfoFactory>? MockActionInfoFactory = new();
     public Mock<IActionInfo>? MockActionInfo = new();
     public Mock<HttpClient>? MockHttpClient = new();
-    
-    public static Mock<IRepoInfo> CreateMockRepoInfo(string owner, string cloneUrl, string name)
-    {
-        Mock<IRepoInfo> mock = new();
-        mock.SetupGet(repoInfo => repoInfo.Owner)
-            .Returns(owner);
-
-        mock.SetupGet(repoInfo => repoInfo.CloneUrl)
-            .Returns(cloneUrl);
-
-        mock.SetupGet(repoInfo => repoInfo.Name)
-            .Returns(name);
-        
-        return mock;
-    }
-
-    public static Mock<IGitHubClientFactory> CreateMockGitHubClientFactory()
-    {
-        Mock<IGitHubClientFactory> mock = new();
-        mock.Setup(factory => factory.Create())
-            .Returns(Mock.Of<IGitHubClient>());
-
-        return mock;
-    }
+    public Mock<ICommentBuilder>? MockCommentBuilder = new();
 }

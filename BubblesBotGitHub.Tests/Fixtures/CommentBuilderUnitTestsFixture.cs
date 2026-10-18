@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Octokit;
+using Octokit.Webhooks;
 using Octokit.Webhooks.Events.PullRequest;
 using IGitHubClient = BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient.IGitHubClient;
 #pragma warning disable CS8618
@@ -19,142 +20,181 @@ namespace BubblesBotGitHub.Tests.Fixtures;
 [UsedImplicitly]
 public class CommentBuilderUnitTestsFixture
 {
-    public readonly PullRequestOpenedEvent TestEvent = AssemblyFixture.GetPullRequestOpenedEvent();
-    public Mock<IPrInfo> PrInfoMock { get; } = new(MockBehavior.Strict);
-    public Mock<IEventInfo> EventInfoMock { get; } = new(MockBehavior.Strict);
-    public Mock<IActionOptions> ActionOptionsMock { get; } = new(MockBehavior.Strict);
-    public Mock<IRepoInfo> RepoInfoMock { get; } = new(MockBehavior.Strict);
-    public Mock<IGitHubClient> GitHubClientMock { get; } = new(MockBehavior.Strict);
-    public Mock<IGit> GitMock { get; } = new(MockBehavior.Strict);
-    public IOptions<Config> Config { get; private set; }
+    // All events either contain a pull request or retrieve pull request data from the GitHub API. Thus, they are all
+    // functionally the same. This could change with future supported events.
+    public static TheoryData<IServiceCollection> TheoryData =>
+    [
+        new TheoryDataRow<IServiceCollection>(SetEventData(AssemblyFixture.GetPullRequestOpenedEvent(), 
+            ActionEventType.PullRequestOpened))
+    ];
 
-    public string BaseRef;
-    public string BaseSha;
-    public string HeadRef;
-    public string HeadSha;
-    public string HeadRepoOwner;
-    public string HeadRepoName;
-    public string? MergeBaseSha;
-    public uint MergeBaseParentsAmount;
-    public string BaseRepoOwner;
-    public string BaseRepoName;
-    public bool IsPossible;
-    public bool UserHasPerms;
-    public bool CommandInvoked;
-    public string UserName;
-    public bool ShouldExit;
-    public GitHubCommit Commit;
-    public string GraphOutput;
-    public string CustomCommand;
-    public bool IsAutoMerge;
-    public string PostComment;
-
-    public void Reset()
+    private static IServiceCollection SetEventData(WebhookEvent webhookEvent, ActionEventType eventType)
     {
-        BaseRef = TestEvent.PullRequest.Base.Ref;
-        BaseSha = TestEvent.PullRequest.Base.Sha;
-        HeadRef = TestEvent.PullRequest.Head.Ref;
-        HeadSha = TestEvent.PullRequest.Head.Sha;
-        HeadRepoOwner = TestEvent.PullRequest.Head.Repo?.Owner.Login ?? throw new InvalidOperationException();
-        HeadRepoName = TestEvent.PullRequest.Head.Repo.Name;
-        MergeBaseSha = TestEvent.PullRequest.MergeCommitSha;
-        BaseRepoOwner = TestEvent.PullRequest.Base.Repo.Owner.Login;
-        BaseRepoName = TestEvent.PullRequest.Base.Repo.Name;
-
-        MergeBaseParentsAmount = 0;
-        IsPossible = true;
-        UserHasPerms = true;
-        CommandInvoked = true;
-        UserName = "luneisolei";
-        ShouldExit = false;
-        Commit = AssemblyFixture.GetGitHubCommit();
-        GraphOutput = "This is an example graph output from git.";
-        CustomCommand = "/fast-forward";
-        IsAutoMerge = true;
-        PostComment = "always";
-    }
-
-    public CommentBuilderUnitTestsFixture()
-    {
-        Reset();
-    }
-    
-    public ICommentBuilder CreateSubject()
-    {
-        SetupActionOptionsMock();
-        SetupPrInfoMock();
-        SetupRepoInfoMock();
-        SetupEventInfoMock();
-        SetupGithubClientMock();
-        SetupGitMock();
-        SetupConfigMock();
+        PullRequestOpenedEvent @event = webhookEvent as PullRequestOpenedEvent 
+            ?? throw new InvalidOperationException("Could not cast WebhookEvent to 'PullRequestOpenedEvent'");
         
-        Mock<IActionInfo> actionInfoMock = new(MockBehavior.Strict);
-        actionInfoMock.SetupGet(m => m.PrInfo).Returns(PrInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.RepoInfo).Returns(RepoInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.EventInfo).Returns(EventInfoMock.Object);
-        actionInfoMock.SetupGet(m => m.ActionOptions).Returns(ActionOptionsMock.Object);
+        string baseRef = @event.PullRequest.Base.Ref;
+        string baseSha = @event.PullRequest.Base.Sha;
+        string headRef = @event.PullRequest.Head.Ref;
+        string headSha = @event.PullRequest.Head.Sha;
+        string headRepoOwner = @event.PullRequest.Head.Repo?.Owner.Login ?? throw new InvalidOperationException();
+        string headRepoName = @event.PullRequest.Head.Repo.Name;
+        string? mergeBaseSha = @event.PullRequest.MergeCommitSha;
+        const uint mergeBaseParentsAmount = 0;
+        string baseRepoOwner = @event.PullRequest.Base.Repo.Owner.Login;
+        string baseRepoName = @event.PullRequest.Base.Repo.Name;
         
-        return new CommentBuilder(Config, actionInfoMock.Object, GitHubClientMock.Object, GitMock.Object);
+        Mock<IActionOptions> actionOptionsMock = SetUpActionOptionsMock(
+            customCommand: "/fast-forward",
+            isAutoMerge: true,
+            postComment: "always");
+
+        Mock<IPrInfo> prInfoMock = SetUpPrInfoMock(
+            baseRef,
+            baseSha,
+            headRef,
+            headSha,
+            headRepoOwner,
+            headRepoName,
+            mergeBaseSha,
+            mergeBaseParentsAmount);
+
+        Mock<IRepoInfo> repoInfoMock = SetUpRepoInfoMock(baseRepoOwner, baseRepoName);
+        
+        Mock<IEventInfo> eventInfoMock = SetUpEventInfoMock(
+            isPossible: true,
+            userHasPerms: true,
+            commandInvoked: true,
+            userName: "luneisolei",
+            shouldExit: false);
+
+        Mock<IActionInfo> actionInfoMock = SetUpActionInfoMock(
+            actionOptionsMock,
+            eventInfoMock,
+            prInfoMock,
+            repoInfoMock);
+
+        MockServices mockServices = new MockServices
+        {
+            MockActionOptions = actionOptionsMock,
+            MockPrInfo = prInfoMock,
+            MockRepoInfo = repoInfoMock,
+            MockEventInfo = eventInfoMock,
+            MockGitHubClient = SetUpGitHubClientMock(commit: AssemblyFixture.GetGitHubCommit()),
+            MockGit = SetUpGitMock(graphOutput: It.IsAny<string>()),
+            MockActionInfo = actionInfoMock,
+            MockCommentBuilder = null
+        };
+        
+        return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices);
     }
 
-    private void SetupActionOptionsMock()
+    private static Mock<IActionOptions> SetUpActionOptionsMock(string customCommand, bool isAutoMerge, string postComment)
     {
-        ActionOptionsMock.SetupGet(m => m.CustomCommand).Returns(CustomCommand);
-        ActionOptionsMock.SetupGet(m => m.IsAutoMerge).Returns(IsAutoMerge);
-        ActionOptionsMock.SetupGet(m => m.PostComment).Returns(PostComment);
+        Mock<IActionOptions> actionOptionsMock = new(MockBehavior.Strict);
+        
+        actionOptionsMock.SetupGet(m => m.CustomCommand).Returns(customCommand);
+        actionOptionsMock.SetupGet(m => m.IsAutoMerge).Returns(isAutoMerge);
+        actionOptionsMock.SetupGet(m => m.PostComment).Returns(postComment);
+
+        return actionOptionsMock;
     }
 
-    private void SetupPrInfoMock()
+    private static Mock<IPrInfo> SetUpPrInfoMock(string baseRef, 
+        string baseSha, 
+        string headRef, 
+        string headSha, 
+        string headRepoOwner, 
+        string headRepoName, 
+        string mergeBaseSha, 
+        uint mergeBaseParentsAmount)
     {
-        PrInfoMock.SetupGet(m => m.BaseRef).Returns(BaseRef);
-        PrInfoMock.SetupGet(m => m.BaseSha).Returns(BaseSha);
-        PrInfoMock.SetupGet(m => m.HeadRef).Returns(HeadRef);
-        PrInfoMock.SetupGet(m => m.HeadSha).Returns(HeadSha);
-        PrInfoMock.SetupGet(m => m.HeadRepoOwner).Returns(HeadRepoOwner);
-        PrInfoMock.SetupGet(m => m.HeadRepoName).Returns(HeadRepoName);
-        PrInfoMock.SetupGet(m => m.MergeBaseSha).Returns(MergeBaseSha);
-        PrInfoMock.SetupGet(m => m.MergeBaseParentsAmount).Returns(MergeBaseParentsAmount);
+        Mock<IPrInfo> prInfoMock = new(MockBehavior.Strict);
+        
+        prInfoMock.SetupGet(m => m.BaseRef).Returns(baseRef);
+        prInfoMock.SetupGet(m => m.BaseSha).Returns(baseSha);
+        prInfoMock.SetupGet(m => m.HeadRef).Returns(headRef);
+        prInfoMock.SetupGet(m => m.HeadSha).Returns(headSha);
+        prInfoMock.SetupGet(m => m.HeadRepoOwner).Returns(headRepoOwner);
+        prInfoMock.SetupGet(m => m.HeadRepoName).Returns(headRepoName);
+        prInfoMock.SetupGet(m => m.MergeBaseSha).Returns(mergeBaseSha);
+        prInfoMock.SetupGet(m => m.MergeBaseParentsAmount).Returns(mergeBaseParentsAmount);
+
+        return prInfoMock;
     }
 
-    private void SetupRepoInfoMock()
+    private static Mock<IRepoInfo> SetUpRepoInfoMock(string baseRepoOwner, string baseRepoName)
     {
-        RepoInfoMock.SetupGet(m => m.Owner).Returns(BaseRepoOwner);
-        RepoInfoMock.SetupGet(m => m.Name).Returns(BaseRepoName);
+        Mock<IRepoInfo> repoInfoMock = new(MockBehavior.Strict);
+        
+        repoInfoMock.SetupGet(m => m.Owner).Returns(baseRepoOwner);
+        repoInfoMock.SetupGet(m => m.Name).Returns(baseRepoName);
+
+        return repoInfoMock;
     }
 
-    private void SetupEventInfoMock()
+    private static Mock<IEventInfo> SetUpEventInfoMock(bool isPossible, 
+        bool userHasPerms, 
+        bool commandInvoked, 
+        string userName, 
+        bool shouldExit)
     {
-        EventInfoMock.SetupGet(m => m.IsPossible).Returns(IsPossible);
-        EventInfoMock.SetupGet(m => m.UserHasPerms).Returns(Task.FromResult(UserHasPerms));
-        EventInfoMock.SetupGet(m => m.CommandInvoked).Returns(CommandInvoked);
-        EventInfoMock.SetupGet(m => m.User).Returns(UserName);
-        EventInfoMock.SetupGet(m => m.ShouldExit).Returns(ShouldExit);
-        EventInfoMock.SetupSet(m => m.ShouldExit = It.IsAny<bool>());
+        Mock<IEventInfo> eventInfoMock = new(MockBehavior.Strict);
+        
+        eventInfoMock.SetupGet(m => m.IsPossible).Returns(isPossible);
+        eventInfoMock.SetupGet(m => m.UserHasPerms).Returns(Task.FromResult(userHasPerms));
+        eventInfoMock.SetupGet(m => m.CommandInvoked).Returns(commandInvoked);
+        eventInfoMock.SetupGet(m => m.User).Returns(userName);
+        eventInfoMock.SetupGet(m => m.ShouldExit).Returns(shouldExit);
+        eventInfoMock.SetupSet(m => m.ShouldExit = It.IsAny<bool>());
+
+        return eventInfoMock;
     }
 
-    private void SetupGithubClientMock()
+    private static Mock<IGitHubClient> SetUpGitHubClientMock(GitHubCommit commit)
     {
-        GitHubClientMock.Setup(m => m.GetCommit(
+        Mock<IGitHubClient> gitHubClientMock = new(MockBehavior.Strict);
+        
+        gitHubClientMock.Setup(m => m.GetCommit(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(Commit);
+            .ReturnsAsync(commit);
+
+        return gitHubClientMock;
     }
 
-    private void SetupGitMock()
+    private static Mock<IGit> SetUpGitMock(string graphOutput)
     {
-        GitMock.Setup(m => m.LogCommitGraph(
+        Mock<IGit> gitMock = new(MockBehavior.Strict);
+        
+        gitMock.Setup(m => m.LogCommitGraph(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>()))
-            .ReturnsAsync(GraphOutput);
+            .ReturnsAsync(graphOutput);
+
+        return gitMock;
     }
 
-    private void SetupConfigMock()
+    private static Mock<IActionInfo> SetUpActionInfoMock(Mock<IActionOptions> actionOptionsMock,
+        Mock<IEventInfo> eventInfoMock,
+        Mock<IPrInfo> prInfoMock,
+        Mock<IRepoInfo> repoInfoMock)
     {
-        IServiceProvider services = AssemblyFixture
-            .CreateServiceCollectionWithMocks(TestEvent, ActionEventType.PullRequestOpened, new MockServices());
+        Mock<IActionInfo> actionInfoMock = new(MockBehavior.Strict);
 
-        Config = services.GetRequiredService<IOptions<Config>>();
+        actionInfoMock.Setup(m => m.ActionOptions).Returns(actionOptionsMock.Object);
+        actionInfoMock.Setup(m => m.EventInfo).Returns(eventInfoMock.Object);
+        actionInfoMock.Setup(m => m.PrInfo).Returns(prInfoMock.Object);
+        actionInfoMock.Setup(m => m.RepoInfo).Returns(repoInfoMock.Object);
+
+        return actionInfoMock;
+    }
+
+    private static Mock<IOptions<Config>> SetUpConfigMock()
+    {
+        Mock<IOptions<Config>> configMock = new(MockBehavior.Strict);
+    
+        return configMock;
     }
 }

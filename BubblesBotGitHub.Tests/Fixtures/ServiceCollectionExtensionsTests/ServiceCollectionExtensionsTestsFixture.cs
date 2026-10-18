@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.Tests.Entities;
 using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionsTests;
 
@@ -17,6 +18,6 @@ public class ServiceCollectionExtensionsTestsFixture : IClassFixture<ServiceColl
         return AssemblyFixture.CreateServiceCollectionWithMocks(
             webhookEvent: AssemblyFixture.GetPullRequestOpenedEvent(),
             eventType: ActionEventType.PullRequestOpened,
-            mockServices: mockServices);
+            mockServices: mockServices).BuildServiceProvider();
     }
 }
