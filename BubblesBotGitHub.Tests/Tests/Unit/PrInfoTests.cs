@@ -9,50 +9,50 @@ public sealed class PrInfoTests(PrInfoFixture classFixture) : IClassFixture<PrIn
 {
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetBaseRefSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetBaseRefSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().BaseRef, subjectFactory().BaseRef);
+        Assert.Equal(expectedFactory().BaseRef, (await subjectFactory()).BaseRef);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetBaseShaSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetBaseShaSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().BaseSha, subjectFactory().BaseSha);
+        Assert.Equal(expectedFactory().BaseSha, (await subjectFactory()).BaseSha);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetHeadRefSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetHeadRefSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().HeadRef, subjectFactory().HeadRef);
+        Assert.Equal(expectedFactory().HeadRef, (await subjectFactory()).HeadRef);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetHeadShaSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetHeadShaSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().HeadSha, subjectFactory().HeadSha);
+        Assert.Equal(expectedFactory().HeadSha, (await subjectFactory()).HeadSha);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetHeadLabelSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetHeadLabelSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().HeadLabel, subjectFactory().HeadLabel);
+        Assert.Equal(expectedFactory().HeadLabel, (await subjectFactory()).HeadLabel);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetMergeBaseShaSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetMergeBaseShaSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().MergeBaseSha, subjectFactory().MergeBaseSha);
+        Assert.Equal(expectedFactory().MergeBaseSha, (await subjectFactory()).MergeBaseSha);
     }
 
     [Theory]
     [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task GetMergeBaseParentsAmountSucceeds(Func<IPrInfo> expectedFactory, Func<IPrInfo> subjectFactory)
+    public async Task GetMergeBaseParentsAmountSucceeds(Func<IPrInfo> expectedFactory, Func<Task<IPrInfo>> subjectFactory)
     {
-        Assert.Equal(expectedFactory().MergeBaseParentsAmount, subjectFactory().MergeBaseParentsAmount);
+        Assert.Equal(expectedFactory().MergeBaseParentsAmount, (await subjectFactory()).MergeBaseParentsAmount);
     }
 }

@@ -5,6 +5,7 @@ using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using Microsoft.Extensions.Options;
 using Octokit.Webhooks;
+using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
 
@@ -40,19 +41,20 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         _gitHubClient = gitHubClient;
         _webhookEvent = webhookEvent;
         
-        Dictionary<ActionEventType, Func<Task>> extractionMap = new() 
+        Dictionary<ActionEventType, Func<WebhookEvent, Task>> extractionMap = new() 
         {
             { ActionEventType.PullRequestOpened, ParsePullRequestOpenedEvent },
-            { ActionEventType.IssueCommentCreated , ParseIssueCommentEvent },
-            { ActionEventType.IssueCommentEdited, ParseIssueCommentEvent }
+            { ActionEventType.IssueCommentCreated , ParseIssueCommentEvent<IssueCommentCreatedEvent> },
+            { ActionEventType.IssueCommentEdited, ParseIssueCommentEvent<IssueCommentEditedEvent> }
         };
         
-        await extractionMap[eventType].Invoke();
+        await extractionMap[eventType].Invoke(_webhookEvent);
     }
 
-    private async Task ParsePullRequestOpenedEvent()
+    private async Task ParsePullRequestOpenedEvent(WebhookEvent webhookEvent)
     {
-        PullRequestOpenedEvent eventData = (PullRequestOpenedEvent)_webhookEvent;
+        PullRequestOpenedEvent eventData = webhookEvent as PullRequestOpenedEvent
+            ?? throw new InvalidOperationException($"Could not cast '{typeof(WebhookEvent).FullName}' to '{typeof(PullRequestOpenedEvent).FullName}'.'");
 
         HeadRepoName = eventData.PullRequest.Head.Repo.Name;
         HeadRepoOwner = eventData.PullRequest.Head.User.Login;
@@ -69,37 +71,30 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
     }
 
-    private async Task ParseIssueCommentEvent()
+    private async Task ParseIssueCommentEvent<TWebhookEvent>(WebhookEvent webhookEvent) where TWebhookEvent : class
     {
-        IssueCommentCreatedEvent eventData = (IssueCommentCreatedEvent)_webhookEvent;
+        TWebhookEvent eventData = webhookEvent as TWebhookEvent
+            ?? throw new InvalidOperationException($"Cannot cast '{webhookEvent.GetType()}' to '{typeof(TWebhookEvent).FullName}'.");
         
         // Verify the repository exists
-        if (eventData.Repository is null)
+        if (webhookEvent.Repository is null)
         {
-            string? summaryPath = Environment.GetEnvironmentVariable("GITHUB_SUMMARY_PATH");
-            const string msg = "Repository is null. The repository has either been deleted or otherwise made inaccessible.";
+            await PrintRepositoryNotFound();
             
-            if (summaryPath is null)
-            {
-                Console.WriteLine("::warning::GITHUB_SUMMARY_PATH environment variable not set.");
-                Console.WriteLine($"::warning "
-                    + $"file={([CallerFilePath] string path = "") => path},"
-                    + $"endLine={([CallerLineNumber] int num = 0) => num}"
-                    + $"::{msg}");
-
-                return;
-            }
-            
-            await File.AppendAllTextAsync(summaryPath, msg);
-
             return;
         }
         
-        string repoOwner = eventData.Repository.Owner.Login;
-        string repoName = eventData.Repository.Name;
-        IssueNumber = eventData.Issue.Number;
+        string repoOwner = webhookEvent.Repository.Owner.Login;
+        string repoName = webhookEvent.Repository.Name;
+        IssueNumber = (webhookEvent as IssueCommentEvent)?.Issue.Number 
+            ?? throw new InvalidOperationException($"Could not cast {webhookEvent.GetType()} to '{typeof(TWebhookEvent).FullName}'.");
         Octokit.PullRequest pr = await _gitHubClient.GetPullRequestAsync(repoOwner, repoName, IssueNumber);
 
+        await ParseIssueCommentPrInfo(pr);
+    }
+
+    private async Task ParseIssueCommentPrInfo(Octokit.PullRequest pr)
+    {
         HeadRepoOwner = pr.Head.User.Login;
         HeadRepoName = pr.Head.Repository.Name;
         BaseSha = pr.Base.Sha;
@@ -112,5 +107,24 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, Opts.Value.WorkingDir);
         PrNodeId = pr.NodeId;
         BaseNodeId = pr.Base.NodeId;
+    }
+
+    private async Task PrintRepositoryNotFound()
+    {
+        string? summaryPath = Environment.GetEnvironmentVariable("GITHUB_SUMMARY_PATH");
+        const string msg = "Repository is null. The repository has either been deleted or otherwise made inaccessible.";
+            
+        if (summaryPath is null)
+        {
+            Console.WriteLine("::warning::GITHUB_SUMMARY_PATH environment variable not set.");
+            Console.WriteLine($"::warning "
+                + $"file={([CallerFilePath] string path = "") => path},"
+                + $"endLine={([CallerLineNumber] int num = 0) => num}"
+                + $"::{msg}");
+
+            return;
+        }
+            
+        await File.AppendAllTextAsync(summaryPath, msg);
     }
 }
