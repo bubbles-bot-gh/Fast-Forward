@@ -38,7 +38,8 @@ public sealed class EventInfoFixture
     {
         // Check for overrides
         if (mockServices is not null)
-            return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices);
+            return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
+                .BuildServiceProvider();
         
         // Use default mocks
         MockServices services = new()
@@ -67,7 +68,8 @@ public sealed class EventInfoFixture
             .Setup(m => m.IsCollaborator(owner, repoName, user))
             .ReturnsAsync(() => DefaultIsCollaborator);
 
-        return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, services);
+        return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, services)
+            .BuildServiceProvider();
     }
 
     public string GetCommentBody(WebhookEvent webhookEvent, ActionEventType eventType)

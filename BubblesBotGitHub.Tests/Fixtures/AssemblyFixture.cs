@@ -42,8 +42,7 @@ public class AssemblyFixture : IAsyncLifetime
         return serializer.Deserialize<GitHubCommit>(File.ReadAllText("./Events/Commit.json"));
     }
     
-    internal static IServiceProvider CreateServiceCollectionWithMocks(
-        WebhookEvent webhookEvent,
+    internal static IServiceCollection CreateServiceCollectionWithMocks(WebhookEvent webhookEvent,
         ActionEventType eventType,
         MockServices mockServices)
     {
@@ -92,8 +91,12 @@ public class AssemblyFixture : IAsyncLifetime
         // Replace HttpClient, if needed
         if (mockServices.MockHttpClient is not null)
             ReplaceService(services, mockServices.MockHttpClient);
+        
+        // Replace ICommentBuilder, if needed
+        if (mockServices.MockCommentBuilder is not null)
+            ReplaceService(services, mockServices.MockCommentBuilder);
 
-        return services.BuildServiceProvider();
+        return services;
     }
 
     private static void ReplaceService<TService>(IServiceCollection services, Mock<TService> mockService) 

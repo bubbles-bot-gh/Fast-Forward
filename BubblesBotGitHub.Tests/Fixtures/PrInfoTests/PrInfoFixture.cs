@@ -66,6 +66,7 @@ public class PrInfoFixture
         
         MockServices mockServices = new() { MockPrInfo = expected, MockActionInfo = null, MockActionInfoFactory = null };
         IPrInfo subject = AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
+            .BuildServiceProvider()
             .GetRequiredService<IPrInfo>();
 
         return subject;
@@ -87,6 +88,7 @@ public class PrInfoFixture
         MockServices mockServices = new() { MockGit = mockGit, MockPrInfo = null, MockActionInfo = null, MockActionInfoFactory = null };
         IPrInfo subject = AssemblyFixture
             .CreateServiceCollectionWithMocks(webhookEvent, eventType, mockServices)
+            .BuildServiceProvider()
             .GetRequiredService<IPrInfo>();
         
         subject.InitializeAsync(mockGit.Object, mockGitHubClient.Object, webhookEvent, eventType);
