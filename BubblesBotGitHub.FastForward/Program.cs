@@ -36,7 +36,6 @@ internal class Program
             {
                 ContentRootPath = AppContext.BaseDirectory
             });
-        builder.Services.AddAppConfig(builder.Configuration);
         builder.Services.AddAppServices(webhookEvent, eventType);
         IServiceProvider services = builder.Services.BuildServiceProvider();
         
