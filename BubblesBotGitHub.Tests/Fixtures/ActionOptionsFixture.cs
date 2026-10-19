@@ -37,10 +37,10 @@ public class ActionOptionsFixture : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    public static TheoryData<WebhookEvent> TheoryData =>
+    public static TheoryData<WebhookEvent, ActionEventType> TheoryData =>
     [
-        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetPullRequestOpenedEvent()),
-        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetIssueCommentCreatedEvent()),
-        new TheoryDataRow<WebhookEvent>(AssemblyFixture.GetIssueCommentEditedEvent())
+        new TheoryDataRow<WebhookEvent, ActionEventType>(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(AssemblyFixture.GetIssueCommentCreatedEvent(), ActionEventType.IssueCommentCreated),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(AssemblyFixture.GetIssueCommentEditedEvent(), ActionEventType.IssueCommentEdited)
     ];
 }
