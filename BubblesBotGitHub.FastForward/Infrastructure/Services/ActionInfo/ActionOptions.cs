@@ -12,7 +12,8 @@ internal sealed record ActionOptions : IActionOptions
         private init
         {
             List<string> validValues = ["always", "on-error", "never"];
-            if (!validValues.Contains(value)) return;
+            if (!validValues.Contains(value)) throw new InvalidOperationException($"Cannot assign value '{value}' to "
+                + $"ActionOptions.PostComment. Valid values are 'always', 'on-error', or 'never'.");
 
             field = value;
         }
