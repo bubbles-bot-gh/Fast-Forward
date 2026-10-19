@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Application.Git;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;

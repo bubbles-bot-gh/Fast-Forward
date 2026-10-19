@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
-using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Entities;
