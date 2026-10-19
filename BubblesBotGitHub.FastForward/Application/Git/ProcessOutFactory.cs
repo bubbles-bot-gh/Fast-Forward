@@ -1,6 +1,4 @@
-using BubblesBotGitHub.FastForward.Application.Interfaces;
-
-namespace BubblesBotGitHub.FastForward.Application;
+namespace BubblesBotGitHub.FastForward.Application.Git;
 
 internal sealed class ProcessOutFactory : IProcessOutFactory
 {

@@ -1,4 +1,4 @@
-namespace BubblesBotGitHub.FastForward.Application.Interfaces;
+namespace BubblesBotGitHub.FastForward.Application.Git;
 
 public interface IProcessOutFactory
 {

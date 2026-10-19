@@ -1,6 +1,4 @@
-using BubblesBotGitHub.FastForward.Application.Interfaces;
-
-namespace BubblesBotGitHub.FastForward.Application;
+namespace BubblesBotGitHub.FastForward.Application.Git;
 
 internal class ProcessOut(int exitCode, string stdOut, string stdErr) : IProcessOut
 {

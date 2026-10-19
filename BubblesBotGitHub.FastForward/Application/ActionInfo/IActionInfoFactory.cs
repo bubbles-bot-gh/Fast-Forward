@@ -1,6 +1,4 @@
-using BubblesBotGitHub.FastForward.Application.ActionInfo;
-
-namespace BubblesBotGitHub.FastForward.Application.Interfaces;
+namespace BubblesBotGitHub.FastForward.Application.ActionInfo;
 
 public interface IActionInfoFactory
 {

@@ -1,5 +1,4 @@
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
-using BubblesBotGitHub.FastForward.Application.Interfaces;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.IssueComment;
