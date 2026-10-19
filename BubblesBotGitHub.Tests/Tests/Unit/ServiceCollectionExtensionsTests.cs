@@ -1,10 +1,15 @@
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Entities;
 using BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionsTests;
+using FluentAssertions;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace BubblesBotGitHub.Tests.Tests.Unit;
@@ -95,6 +100,27 @@ public sealed class ServiceCollectionExtensionsTests
             
             IActionInfo expected = await mockFactory.Object.Create();
             Assert.Same(expected, actual);
+        }
+    }
+
+    [Collection("AppConfigTests")]
+    public sealed class AppConfigService(ITestOutputHelper outputHelper, ServiceCollectionExtensionsTestsFixture classFixture)
+        : IClassFixture<ServiceCollectionExtensionsTestsFixture>
+    {
+        [Fact]
+        public void ThrowsWhenConfigIsInvalid()
+        {
+            IHostApplicationBuilder host = classFixture.ConfigureAppHost();
+            Dictionary<string, string?> overrides = new()
+            {
+                ["Config:IdRequestTokenEnvName"] = "   "
+            };
+            host.Configuration.AddInMemoryCollection(overrides);
+            IServiceProvider provider = host.Services.BuildServiceProvider();
+
+            Action act = () => _ = provider.GetRequiredService<IOptions<Config>>().Value;
+            
+            act.Should().Throw<OptionsValidationException>();
         }
     }
 }
