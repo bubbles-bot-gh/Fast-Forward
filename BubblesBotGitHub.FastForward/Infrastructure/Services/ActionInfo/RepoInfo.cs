@@ -1,4 +1,4 @@
-using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;

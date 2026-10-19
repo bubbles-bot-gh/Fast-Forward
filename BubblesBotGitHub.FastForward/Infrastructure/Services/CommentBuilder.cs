@@ -1,5 +1,6 @@
+using BubblesBotGitHub.FastForward.Application;
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
-using BubblesBotGitHub.FastForward.Application.Interfaces;
+using BubblesBotGitHub.FastForward.Application.Git;
 using BubblesBotGitHub.FastForward.Core.Entities;
 using Microsoft.Extensions.Options;
 using Octokit;
