@@ -86,8 +86,7 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         
         string repoOwner = webhookEvent.Repository.Owner.Login;
         string repoName = webhookEvent.Repository.Name;
-        IssueNumber = (webhookEvent as IssueCommentEvent)?.Issue.Number 
-            ?? throw new InvalidOperationException($"Could not cast {webhookEvent.GetType()} to '{typeof(TWebhookEvent).FullName}'.");
+        IssueNumber = (webhookEvent as IssueCommentEvent)!.Issue.Number; // Suppressed because it's impossible for webhookEvent to be null here.
         Octokit.PullRequest pr = await _gitHubClient.GetPullRequestAsync(repoOwner, repoName, IssueNumber);
 
         await ParseIssueCommentPrInfo(pr);
@@ -117,10 +116,7 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         if (summaryPath is null)
         {
             Console.WriteLine("::warning::GITHUB_SUMMARY_PATH environment variable not set.");
-            Console.WriteLine($"::warning "
-                + $"file={([CallerFilePath] string path = "") => path},"
-                + $"endLine={([CallerLineNumber] int num = 0) => num}"
-                + $"::{msg}");
+            Console.WriteLine($"::warning::{msg}");
 
             return;
         }

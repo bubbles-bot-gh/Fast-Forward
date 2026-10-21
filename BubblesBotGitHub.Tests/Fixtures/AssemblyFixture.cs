@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Extensions;
 using BubblesBotGitHub.Tests.Entities;
@@ -132,5 +133,27 @@ public class AssemblyFixture : IAsyncLifetime
             ?? throw new InvalidOperationException();
 
         return eventData;
+    }
+
+    internal static JsonSerializerOptions CreateJsonSerializerOptionsWithRemovedField(Type declaringType, string property)
+    {
+        Action<JsonTypeInfo> typeInfoResolverModifier = (JsonTypeInfo typeInfo) =>
+        {
+            if (declaringType.IsAssignableFrom(typeInfo.Type))
+            {
+                // Remove property from deserialization contract
+                JsonPropertyInfo? propertyInfo = typeInfo.Properties.Single(p => p.Name == property);
+
+                typeInfo.Properties.Remove(propertyInfo);
+            }
+        };
+
+        return new JsonSerializerOptions
+        {
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers = { typeInfoResolverModifier }
+            }
+        };
     }
 }

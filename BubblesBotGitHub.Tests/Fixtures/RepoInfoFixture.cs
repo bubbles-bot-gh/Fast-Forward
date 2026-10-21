@@ -29,27 +29,6 @@ public class RepoInfoFixture
         return AssemblyFixture.CreateServiceCollectionWithMocks(webhookEvent, eventType, new MockServices { MockRepoInfo = null });
     }
 
-    public JsonSerializerOptions CreateJsonSerializerOptionsWithRemovedField(Type declaringType, string propertyName)
-    {
-        Action<JsonTypeInfo> typeInfoResolverModifier = (JsonTypeInfo typeInfo) =>
-        {
-            if (declaringType.IsAssignableFrom(typeInfo.Type))
-            {
-                // Remove property from deserialization contract
-                JsonPropertyInfo? propertyInfo = typeInfo.Properties.Single(p => p.Name == propertyName);
-
-                if (propertyInfo is not null)
-                {
-                    typeInfo.Properties.Remove(propertyInfo);
-                }
-            }
-        };
-
-        DefaultJsonTypeInfoResolver resolver = new DefaultJsonTypeInfoResolver
-        {
-            Modifiers = { typeInfoResolverModifier }
-        };
-
-        return new JsonSerializerOptions { TypeInfoResolver = resolver };
-    }
+    public readonly Func<Type, string, JsonSerializerOptions> CreateJsonSerializerOptionsWithRemovedField = 
+        AssemblyFixture.CreateJsonSerializerOptionsWithRemovedField;
 }
