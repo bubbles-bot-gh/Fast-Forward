@@ -1,11 +1,15 @@
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+using BubblesBotGitHub.Tests.Entities;
 using BubblesBotGitHub.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Octokit.Webhooks;
+using Octokit.Webhooks.Events;
+using Octokit.Webhooks.Events.BranchProtectionRule;
+using Octokit.Webhooks.Models;
 using EventInfo = BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo.EventInfo;
 
 namespace BubblesBotGitHub.Tests.Tests.Unit;
@@ -23,6 +27,36 @@ public sealed class EventInfoTests(ITestOutputHelper outputHelper, EventInfoFixt
         // Compare to expected
         string expected = classFixture.GetCommentBody(webhookEvent, eventType);
         actual.CommentBody.Should().Be(expected);
+    }
+
+    [Fact]
+    public void CommentBody_InvalidWebhookEvent_ReturnsEmptyString()
+    {
+        BranchProtectionRuleEvent webhookEvent = new BranchProtectionRuleCreatedEvent
+        {
+            Rule = new BranchProtectionRule
+            {
+                Name = "New Branch Protection Rule A",
+                AllowDeletionsEnforcementLevel = EnforcementLevel.NonAdmins,
+                AllowForcePushesEnforcementLevel = EnforcementLevel.Everyone,
+                AuthorizedActorNames = [],
+                LinearHistoryRequirementEnforcementLevel = EnforcementLevel.Everyone,
+                MergeQueueEnforcementLevel = EnforcementLevel.Everyone,
+                PullRequestReviewsEnforcementLevel = EnforcementLevel.Everyone,
+                RequiredConversationResolutionLevel = EnforcementLevel.Everyone,
+                RequiredDeploymentsEnforcementLevel = EnforcementLevel.Everyone,
+                RequiredStatusChecks = [],
+                RequiredStatusChecksEnforcementLevel = EnforcementLevel.Everyone,
+                SignatureRequirementEnforcementLevel = EnforcementLevel.Everyone
+            }
+        };
+        IServiceProvider provider = classFixture.CreateServiceProviderWithMocks(
+            webhookEvent, 
+            ActionEventType.PullRequestOpened, 
+            new MockServices { MockEventInfo = null });
+        IEventInfo actual = provider.GetRequiredService<IEventInfo>();
+
+        actual.CommentBody.Should().Be(string.Empty);
     }
 
     [Theory]
