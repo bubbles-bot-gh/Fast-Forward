@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using BubblesBotGitHub.FastForward.Application.Git;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 using BubblesBotGitHub.Tests.Entities;
+using FluentAssertions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -18,6 +20,7 @@ namespace BubblesBotGitHub.Tests.Fixtures.PrInfoTests;
 [UsedImplicitly]
 public class PrInfoFixture
 {
+    public string? GitHubSummaryPath => Environment.GetEnvironmentVariable("GITHUB_SUMMARY_PATH");
     private static readonly PullRequestOpenedEvent PrOpenedEvent = AssemblyFixture.GetPullRequestOpenedEvent();
     private static readonly IssueCommentCreatedEvent IssueCommentCreatedEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
     private static readonly IssueCommentEditedEvent IssueCommentEditedEvent = AssemblyFixture.GetIssueCommentEditedEvent();
@@ -56,6 +59,52 @@ public class PrInfoFixture
                 TestDisplayName = "WithIssueCommentEditedEvent"
             }
     ];
+
+    public readonly Func<Type, string, JsonSerializerOptions> CreateJsonSerializerOptionsWithRemovedField =
+        AssemblyFixture.CreateJsonSerializerOptionsWithRemovedField;
+
+    public async Task RunInitializeAsync(
+        Func<Task<IPrInfo>> subjectFactory, 
+        WebhookEvent eventData,
+        ActionEventType eventType)
+    {
+        // Note: eventType is a throwaway value here
+        await (await subjectFactory()).InitializeAsync(
+            new Mock<IGit>().Object,
+            new Mock<IGitHubClient>().Object,
+            eventData,
+            eventType);
+    }
+
+    public async Task ValidateConsoleOutput(
+        Func<Task<IPrInfo>> subjectFactory,
+        WebhookEvent eventData,
+        ActionEventType eventType)
+    {
+        TextWriter originalOut = Console.Out;
+        await using StringWriter writer = new();
+        Console.SetOut(writer);
+        await RunInitializeAsync(subjectFactory, eventData, eventType);
+
+        string output = writer.ToString();
+        output.Should().ContainAll("Repository is null", "GITHUB_SUMMARY_PATH");
+
+        // Reset Console.Out for other tests
+        Console.SetOut(originalOut);
+    }
+
+    public async Task ValidateGitHubSummaryOutput(
+        Func<Task<IPrInfo>> subjectFactory,
+        WebhookEvent eventData,
+        ActionEventType eventType)
+    {
+        await RunInitializeAsync(subjectFactory, eventData, eventType);
+        StreamReader stream = File.OpenText(GitHubSummaryPath);
+        string text = await stream.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+        text.Should().Contain("Repository is null");
+        text.Should().NotContain("GITHUB_SUMMARY_PATH");
+    }
     
     private static Func<IPrInfo> ExpectedSetup(WebhookEvent webhookEvent, ActionEventType eventType) => () =>
     {

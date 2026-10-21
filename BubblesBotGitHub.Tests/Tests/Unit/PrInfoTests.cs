@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using BubblesBotGitHub.FastForward.Application.Git;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
@@ -8,6 +9,7 @@ using BubblesBotGitHub.Tests.Fixtures;
 using BubblesBotGitHub.Tests.Fixtures.PrInfoTests;
 using FluentAssertions;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
 using Moq;
 using Octokit.Webhooks;
 
@@ -67,126 +69,106 @@ public sealed class PrInfoTests(PrInfoFixture classFixture) : IClassFixture<PrIn
         Assert.Equal(expectedFactory().MergeBaseParentsAmount, (await subjectFactory()).MergeBaseParentsAmount);
     }
 
-    [Theory]
-    [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task InitializeAsync_InvalidPullRequestOpenedEvent_Throws(
-        Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
-    {
-        Mock<IGit> git = new();
-        Mock<IGitHubClient> gitHubClient = new();
-        WebhookEvent webhookEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
-            
-        Func<Task> action = async () => await (await subjectFactory())
-            .InitializeAsync(git.Object, gitHubClient.Object, webhookEvent, ActionEventType.PullRequestOpened);
-
-        await action.Should().ThrowAsync<InvalidOperationException>();
-    }
-
-    [Theory]
-    [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task InitializeAsync_InvalidIssueCommentCreatedEvent_Throws(
-        Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
-    {
-        Mock<IGit> git = new();
-        Mock<IGitHubClient> gitHubClient = new();
-        WebhookEvent webhookEvent = AssemblyFixture.GetIssueCommentEditedEvent();
-            
-        Func<Task> action = async () => await (await subjectFactory())
-            .InitializeAsync(git.Object, gitHubClient.Object, webhookEvent, ActionEventType.IssueCommentCreated);
-
-        await action.Should().ThrowAsync<InvalidOperationException>();
-    }
-
-    [Theory]
-    [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-    public async Task InitializeAsync_InvalidIssueCommentEditedEvent_Throws(
-        Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
-    {
-        Mock<IGit> git = new();
-        Mock<IGitHubClient> gitHubClient = new();
-        WebhookEvent webhookEvent = AssemblyFixture.GetPullRequestOpenedEvent();
-            
-        Func<Task> action = async () => await (await subjectFactory())
-            .InitializeAsync(git.Object, gitHubClient.Object, webhookEvent, ActionEventType.IssueCommentEdited);
-
-        await action.Should().ThrowAsync<InvalidOperationException>();
-    }
-
-    [Collection("Console")]
-    public class ConsoleTests
+    public class InitializeAsync
     {
         [Theory]
         [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
-        public async Task InitializeAsync_NullRepository_PrintsWarning(Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
+        public async Task ValidEvent_DoesNotThrow(Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
+        {
+            Func<Task> action = async () => await subjectFactory();
+
+            await action.Should().NotThrowAsync();
+        }
+        
+        [Fact]
+        public async Task InvalidPullRequestOpenedEvent_Throws()
         {
             Mock<IGit> git = new();
             Mock<IGitHubClient> gitHubClient = new();
+            WebhookEvent webhookEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
+            
+            Func<Task> action = async () => await new PrInfo(new Mock<IOptions<Config>>().Object)
+                .InitializeAsync(git.Object, gitHubClient.Object, webhookEvent, ActionEventType.PullRequestOpened);
 
-            JsonSerializerOptions opts = new()
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task InvalidIssueCommentEvent_Throws()
+        {
+            WebhookEvent webhookEvent = AssemblyFixture.GetPullRequestOpenedEvent();
+            Func<Task> action = async () => await new PrInfo(new Mock<IOptions<Config>>().Object)
+                .InitializeAsync(
+                    new Mock<IGit>().Object,
+                    new Mock<IGitHubClient>().Object,
+                    webhookEvent,
+                    ActionEventType.IssueCommentCreated);
+
+            await action.Should().ThrowAsync<InvalidOperationException>();
+        }
+    }
+    
+    [Collection("Console")]
+    public class ConsoleTests(PrInfoFixture classFixture) : IClassFixture<PrInfoFixture>
+    {
+        [Theory]
+        [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
+        public async Task InitializeAsyncNullRepository_NullGitHubSummaryPath_PrintsWarning(
+            Func<IPrInfo> _, Func<Task<IPrInfo>> subjectFactory)
+        {
+            string? originalPath = null;
+            
+            // Check if we're in a GitHub environment
+            if (classFixture.GitHubSummaryPath is not null)
             {
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-                {
-                    Modifiers =
-                    {
-                        typeInfo =>
-                        {
-                            if (typeof(WebhookEvent).IsAssignableFrom(typeInfo.Type))
-                            {
-                                // Remove property from deserialization contract, skipping "repository" key
-                                JsonPropertyInfo? repo = typeInfo
-                                    .Properties
-                                    .FirstOrDefault(p => p.Name == "repository");
-
-                                if (repo is not null)
-                                {
-                                    typeInfo.Properties.Remove(repo);
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+                // We're in a GitHub environment, so nullify summary path
+                originalPath = classFixture.GitHubSummaryPath;
+                Environment.SetEnvironmentVariable("GITHUB_SUMMARY_PATH", null);
+            }
+            
+            JsonSerializerOptions opts = classFixture
+                .CreateJsonSerializerOptionsWithRemovedField(typeof(WebhookEvent), "repository");
 
             WebhookEvent webhookEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
+            ActionEventType eventType = ActionEventType.IssueCommentCreated;
             string json = JsonSerializer.Serialize(webhookEvent, webhookEvent.GetType());
             WebhookEvent eventData = JsonSerializer.Deserialize(json, webhookEvent.GetType(), opts) as WebhookEvent
                 ?? throw new InvalidOperationException($"Cannot deserialize event {json}");
 
-            string? summaryPath = Environment.GetEnvironmentVariable("GITHUB_SUMMARY_PATH");
-
-            if (summaryPath is null)
-            {
-                TextWriter originalOut = Console.Out;
-                await using StringWriter writer = new();
-                Console.SetOut(writer);
-                
-                await RunInitializeAsync();
-                
-                string output = writer.ToString();
-                output.Should().ContainAll("Repository is null", "GITHUB_SUMMARY_PATH");
-                
-                Console.SetOut(originalOut);
-
-                return;
-            }
-
-            await RunInitializeAsync();
-            StreamReader stream = File.OpenText(summaryPath);
-            string text = await stream.ReadToEndAsync(TestContext.Current.CancellationToken);
-
-            text.Should().Contain("Repository is null");
-            text.Should().NotContain("GITHUB_SUMMARY_PATH");
-            return;
+            await classFixture.ValidateConsoleOutput(subjectFactory, eventData, eventType);
             
-            async Task RunInitializeAsync()
+            // Set original summary path
+            Environment.SetEnvironmentVariable("GITHUB_SUMMARY_PATH", originalPath);
+        }
+
+        [Theory]
+        [MemberData(nameof(PrInfoFixture.TheoryData), MemberType = typeof(PrInfoFixture))]
+        public async Task InitializeAsyncNullRepository_ValidGitHubSummaryPath_AppendsWarning(Func<IPrInfo> _,
+            Func<Task<IPrInfo>> subjectFactory)
+        {
+            bool wasNull = false;
+            
+            // If we're not in a GitHub environment, we need to fake a summary path
+            if (classFixture.GitHubSummaryPath is null)
             {
-                await (await subjectFactory())
-                    .InitializeAsync(
-                        git.Object,
-                        gitHubClient.Object,
-                        eventData,
-                        ActionEventType.IssueCommentCreated);
+                wasNull = true; 
+                Environment.SetEnvironmentVariable("GITHUB_SUMMARY_PATH", Path.GetTempFileName());
             }
+            
+            JsonSerializerOptions opts =
+                classFixture.CreateJsonSerializerOptionsWithRemovedField(typeof(WebhookEvent), "repository");
+
+            WebhookEvent webhookEvent = AssemblyFixture.GetIssueCommentCreatedEvent();
+            ActionEventType eventType = ActionEventType.IssueCommentCreated;
+            string json = JsonSerializer.Serialize(webhookEvent, webhookEvent.GetType());
+            WebhookEvent eventData = JsonSerializer.Deserialize(json, webhookEvent.GetType(), opts) as WebhookEvent
+                ?? throw new InvalidOperationException($"Cannot deserialize event {json}");
+
+            await classFixture.ValidateGitHubSummaryOutput(subjectFactory, eventData, eventType);
+            
+            // Reset summary path
+            if (wasNull)
+                Environment.SetEnvironmentVariable("GITHUB_SUMMARY_PATH", null);
         }
     }
 }
