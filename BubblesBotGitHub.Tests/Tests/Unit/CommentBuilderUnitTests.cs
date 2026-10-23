@@ -84,6 +84,90 @@ public class CommentBuilderUnitTests(ITestOutputHelper outputHelper, CommentBuil
             headFullRef,
             "common ancestor");
     }
+
+    [Theory]
+    [MemberData(nameof(CommentBuilderUnitTestsFixture.TheoryData), MemberType = typeof(CommentBuilderUnitTestsFixture))]
+    public async Task MergeBaseParentsAmountIsZero_DoesNotExcludeAnyCommits(IServiceCollection services)
+    {
+        IServiceProvider provider = services.BuildServiceProvider();
+        
+        Mock<IEventInfo> eventInfoMock = Mock.Get(provider.GetRequiredService<IEventInfo>());
+        eventInfoMock.SetupGet(m => m.IsPossible).Returns(false);
+        
+        Mock<IPrInfo> prInfoMock = Mock.Get(provider.GetRequiredService<IPrInfo>());        
+        prInfoMock.SetupGet(m => m.MergeBaseSha).Returns("abc123");
+        prInfoMock.SetupGet(m => m.MergeBaseParentsAmount).Returns(0);
+
+        Mock<IGit> gitMock = Mock.Get(provider.GetRequiredService<IGit>());
+        gitMock.Setup(m => m.LogCommitGraph(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .ReturnsAsync("graph output");
+
+        IActionInfo actionInfo = provider.GetRequiredService<IActionInfo>();
+        string baseFullRef = $"{actionInfo.PrInfo.BaseRef} ({actionInfo.PrInfo.BaseSha})";
+        string headFullRef = $"{actionInfo.PrInfo.HeadRef} ({actionInfo.PrInfo.HeadSha})";
+        
+        string actual = await provider.GetRequiredService<ICommentBuilder>().Build();
+    
+        actual.Should().ContainAll(
+            "Can't fast-forward",
+            baseFullRef,
+            headFullRef,
+            "diverged at",
+            "Rebase");
+
+        gitMock.Verify(m => m.LogCommitGraph(
+            string.Empty,
+            actionInfo.PrInfo.BaseSha,
+            actionInfo.PrInfo.HeadSha,
+            It.IsAny<string>()),
+            Times.Once);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommentBuilderUnitTestsFixture.TheoryData), MemberType = typeof(CommentBuilderUnitTestsFixture))]
+    public async Task MergeBaseParentsAmount_IsGreaterThanOne_ExcludesCommits(IServiceCollection services)
+    {
+        IServiceProvider provider = services.BuildServiceProvider();
+        
+        Mock<IEventInfo> eventInfoMock = Mock.Get(provider.GetRequiredService<IEventInfo>());
+        eventInfoMock.SetupGet(m => m.IsPossible).Returns(false);
+        
+        Mock<IPrInfo> prInfoMock = Mock.Get(provider.GetRequiredService<IPrInfo>());        
+        prInfoMock.SetupGet(m => m.MergeBaseSha).Returns("abc123");
+        prInfoMock.SetupGet(m => m.MergeBaseParentsAmount).Returns(1);
+
+        Mock<IGit> gitMock = Mock.Get(provider.GetRequiredService<IGit>());
+        gitMock.Setup(m => m.LogCommitGraph(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .ReturnsAsync("graph output");
+
+        IActionInfo actionInfo = provider.GetRequiredService<IActionInfo>();
+        string baseFullRef = $"{actionInfo.PrInfo.BaseRef} ({actionInfo.PrInfo.BaseSha})";
+        string headFullRef = $"{actionInfo.PrInfo.HeadRef} ({actionInfo.PrInfo.HeadSha})";
+        
+        string actual = await provider.GetRequiredService<ICommentBuilder>().Build();
+    
+        actual.Should().ContainAll(
+            "Can't fast-forward",
+            baseFullRef,
+            headFullRef,
+            "diverged at",
+            "Rebase");
+
+        gitMock.Verify(m => m.LogCommitGraph(
+                "abc123",
+                actionInfo.PrInfo.BaseSha,
+                actionInfo.PrInfo.HeadSha,
+                It.IsAny<string>()),
+            Times.Once);
+    }
     
     [Theory]
     [MemberData(nameof(CommentBuilderUnitTestsFixture.TheoryData), MemberType = typeof(CommentBuilderUnitTestsFixture))]

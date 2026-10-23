@@ -58,8 +58,8 @@ public class CommentBuilder(IOptions<Config> opts, IActionInfo actionInfo, IGitH
         List<string> result = [];
         
         // Determine divergence in branches
-        result.Add($"Can't fast-forward {_baseFullRef} to {_headFullRef}."
-            + $"{_baseFullRef} is not a direct ancestor of {_headFullRef}.");
+        result.Add($"Can't fast-forward {_baseFullRef} to {_headFullRef}. "
+            + $"{_baseFullRef} is not a direct ancestor of {_headFullRef}. ");
         
         // Show where branches diverged
         // TODO: refactor IPrInfo.MergeBaseSha to allow null
