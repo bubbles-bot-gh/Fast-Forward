@@ -103,23 +103,19 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Collection("AppConfigTests")]
-    public sealed class AppConfigService(ITestOutputHelper outputHelper, ServiceCollectionExtensionsTestsFixture classFixture)
+    public sealed class AppConfigService(ITestOutputHelper outputHelper,
+        ServiceCollectionExtensionsTestsFixture classFixture)
         : IClassFixture<ServiceCollectionExtensionsTestsFixture>
     {
-        [Fact]
-        public void ThrowsWhenConfigIsInvalid()
+        [Theory]
+        [MemberData(nameof(ServiceCollectionExtensionsTestsFixture.TheoryData),
+            MemberType = typeof(ServiceCollectionExtensionsTestsFixture))]
+        public void OptionMissing_FailsValidation(string optionName)
         {
-            IHostApplicationBuilder host = classFixture.ConfigureAppHost();
-            Dictionary<string, string?> overrides = new()
-            {
-                ["Config:IdRequestTokenEnvName"] = "   "
-            };
-            host.Configuration.AddInMemoryCollection(overrides);
-            IServiceProvider provider = host.Services.BuildServiceProvider();
+            IServiceProvider provider = classFixture.CreateServiceProviderWithOptionMissing(optionName);
+            Action action = () => _ = provider.GetRequiredService<IOptions<Config>>().Value;
 
-            Action act = () => _ = provider.GetRequiredService<IOptions<Config>>().Value;
-            
-            act.Should().Throw<OptionsValidationException>();
+            action.Should().Throw<OptionsValidationException>();
         }
     }
 }
