@@ -1,72 +1,131 @@
 using System.Net;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using BubblesBotGitHub.Tests.Fixtures.GitHubClientTests;
+using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 
 namespace BubblesBotGitHub.Tests.Tests.Unit;
 
-public class GitHubClientFactoryTests(GitHubClientFactoryFixture classFixture) 
-    : IClassFixture<GitHubClientFactoryFixture>
+public class GitHubClientFactoryTests
 {
-    [Fact]
-    public void SucceedsCreatingInstance()
+    public class Create(GitHubClientFactoryFixture classFixture) : IClassFixture<GitHubClientFactoryFixture>
     {
-        Environment.SetEnvironmentVariable(classFixture.RequestTokenEnvName, classFixture.RequestTokenEnvValue);
-        Environment.SetEnvironmentVariable(classFixture.RequestUrlEnvName, classFixture.RequestUrlEnvValue);
-        
-        // Mock setup
-        classFixture
-            .MockHttpHandler
-            .Protected()
-            .Setup<HttpResponseMessage>(
-                "Send",
-                ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Get 
-                    && req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)
-                ),
-                ItExpr.IsAny<CancellationToken>())
-            .Returns(
-                new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(classFixture.MockOidcValue)
-                });
+        [Fact]
+        public void ValidArgs_CreateInstance()
+        {
+            IOptions<Config> options = classFixture.CreateDefaultTestOptions();
+            classFixture.SetDefaultEnvVars();
+            
+            Mock<HttpMessageHandler> httpHandlerMock = new(MockBehavior.Strict);
+            classFixture.SetupIdTokenResponse(httpHandlerMock, new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(classFixture.IdTokenResponseMock)
+            });
+            classFixture.SetupInstallationTokenResponse(httpHandlerMock, new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(classFixture.InstallationTokenResponseMock)
+            });
+            
+            IGitHubClientFactory subject = classFixture.GetSubject(options, new HttpClient(httpHandlerMock.Object));
+            IGitHubClient client = subject.Create();
 
-        classFixture
-            .MockHttpHandler
-            .Protected()
-            .Setup<HttpResponseMessage>(
-                "Send",
-                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post
-                    && req.RequestUri!.Host.Contains(classFixture.SupabaseHost)
-                ),
-                ItExpr.IsAny<CancellationToken>())
-            .Returns(
-                new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(classFixture.MockInstallationTokenValue)
-                });
-        
-        // Get subject with mocked object
-        IGitHubClientFactory factory = classFixture.GetFactory(new HttpClient(classFixture.MockHttpHandler.Object));
-        IGitHubClient client = factory.Create();
-        
-        // Verify results
-        Assert.NotNull(client);
-        classFixture.MockHttpHandler.Protected().Verify(
-            "Send",
-            Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => 
-                req.RequestUri!.Host.Contains(classFixture.GitHubUserContentHost)),
-            ItExpr.IsAny<CancellationToken>());
-        
-        classFixture.MockHttpHandler.Protected().Verify(
-            "Send",
-            Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => 
-                req.RequestUri!.Host.Contains(classFixture.SupabaseHost)),
-            ItExpr.IsAny<CancellationToken>());
+            client.Should().NotBeNull();
+            classFixture.VerifyIdTokenResponseCalled(httpHandlerMock);
+            classFixture.VerifyInstallationTokenResponseCalled(httpHandlerMock);
+
+            classFixture.ResetEnvVars();
+        }
+
+        [Fact]
+        public void IdRequestTokenUrlNotSet_Throws()
+        {
+            IOptions<Config> options = classFixture.CreateDefaultTestOptions();
+            Environment.SetEnvironmentVariable(options.Value.IdRequestTokenEnvName, null);
+
+            Mock<HttpMessageHandler> httpHandlerMock = new(MockBehavior.Strict);
+            IGitHubClientFactory subject = classFixture.GetSubject(options, new HttpClient(httpHandlerMock.Object));
+            Action action = () => subject.Create();
+
+            action.Should().Throw<InvalidOperationException>().WithMessage("ID token not set");
+            httpHandlerMock.Protected().Verify("Send", 
+                Times.Never(), 
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public void IdRequestUrlNotSet_Throws()
+        {
+            IOptions<Config> options = classFixture.CreateDefaultTestOptions();
+            Environment.SetEnvironmentVariable(options.Value.IdRequestTokenEnvName, classFixture.IdRequestToken);
+            
+            Mock<HttpMessageHandler> httpHandlerMock = new(MockBehavior.Strict);
+            IGitHubClientFactory subject = classFixture.GetSubject(options, new HttpClient(httpHandlerMock.Object));
+            Action action = () => subject.Create();
+
+            action.Should().Throw<InvalidOperationException>().WithMessage("URL not set");
+            httpHandlerMock.Protected()
+                .Verify("Send", 
+                    Times.Never(), 
+                    ItExpr.IsAny<HttpRequestMessage>(), 
+                    ItExpr.IsAny<CancellationToken>());
+            
+            classFixture.ResetEnvVars();
+        }
+
+        [Fact]
+        public void IdTokenValueFieldNull_Throws()
+        {
+            IOptions<Config> options = classFixture.CreateDefaultTestOptions();
+            classFixture.SetDefaultEnvVars();
+
+            Mock<HttpMessageHandler> httpHandlerMock = new(MockBehavior.Strict);
+            classFixture.SetupIdTokenResponse(httpHandlerMock, new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("""{"value": null}""")
+            });
+
+            IGitHubClientFactory subject = classFixture.GetSubject(options, new HttpClient(httpHandlerMock.Object));
+            Action action = () => subject.Create();
+
+            action.Should().Throw<InvalidOperationException>().WithMessage("OIDC response 'value' field is null");
+            classFixture.VerifyIdTokenResponseCalled(httpHandlerMock);
+
+            classFixture.ResetEnvVars();
+        }
+
+        [Fact]
+        public void InstallationTokenValueFieldNull_Throws()
+        {
+            IOptions<Config> options = classFixture.CreateDefaultTestOptions();
+            classFixture.SetDefaultEnvVars();
+
+            Mock<HttpMessageHandler> httpHandlerMock = new(MockBehavior.Strict);
+            classFixture.SetupIdTokenResponse(httpHandlerMock, new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(classFixture.IdTokenResponseMock)
+            });
+            classFixture.SetupInstallationTokenResponse(httpHandlerMock, new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("""{"token": null}""")
+            });
+
+            IGitHubClientFactory subject = classFixture.GetSubject(options, new HttpClient(httpHandlerMock.Object));
+            Action action = () => subject.Create();
+
+            action.Should().Throw<InvalidOperationException>().WithMessage("Installation token response 'token' field is null");
+            classFixture.VerifyIdTokenResponseCalled(httpHandlerMock);
+            classFixture.VerifyInstallationTokenResponseCalled(httpHandlerMock);
+
+            classFixture.ResetEnvVars();
+        }
     }
 }
