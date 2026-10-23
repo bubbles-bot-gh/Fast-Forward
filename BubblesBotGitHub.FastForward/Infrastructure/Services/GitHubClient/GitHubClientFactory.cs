@@ -45,7 +45,7 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         using JsonDocument doc = JsonDocument.Parse(json);
 
         return doc.RootElement.GetProperty("value").GetString()
-            ?? throw new InvalidOperationException("OIDC response has no 'value' field");
+            ?? throw new InvalidOperationException("OIDC response 'value' field is null");
     }
 
     private string GetInstallationToken(string oidcToken)
@@ -63,6 +63,6 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         using JsonDocument doc = JsonDocument.Parse(json);
         
         return doc.RootElement.GetProperty("token").GetString()
-            ?? throw new InvalidOperationException("Installation token response has no 'token' field");
+            ?? throw new InvalidOperationException("Installation token response 'token' field is null");
     }
 }
