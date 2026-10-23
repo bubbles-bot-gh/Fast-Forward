@@ -21,8 +21,11 @@ public static class ServiceCollectionExtensions
             serviceCollection.AddOptionsWithValidateOnStart<Config>()
                 .Bind(configuration.GetRequiredSection(nameof(Config)))
                 .Validate(config => !string.IsNullOrWhiteSpace(config.IdRequestTokenEnvName)
-                        && !string.IsNullOrWhiteSpace(config.SupabaseRequestTokenUrl)
-                        && !string.IsNullOrWhiteSpace(config.IdRequestUrlEnvName),
+                    && !string.IsNullOrWhiteSpace(config.SupabaseRequestTokenUrl)
+                    && !string.IsNullOrWhiteSpace(config.IdRequestUrlEnvName)
+                    && !string.IsNullOrWhiteSpace(config.SupabasePublishableKey)
+                    && !string.IsNullOrWhiteSpace(config.Audience)
+                    && !string.IsNullOrWhiteSpace(config.WorkingDir),
                     "Config section missing or empty. Is appsettings.json being loaded?");
             
             return serviceCollection;

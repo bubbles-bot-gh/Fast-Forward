@@ -7,5 +7,7 @@ public class Config
     public required string SupabaseRequestTokenUrl { get; init; }
     public required string SupabasePublishableKey { get; init; }
     public required string Audience { get; init; }
-    public string WorkingDir { get; } = Environment.GetEnvironmentVariable("RUNNER_TEMP") ?? Path.GetTempPath();
+    
+    // Keep init for testing validation
+    public string WorkingDir { get; init; } = Environment.GetEnvironmentVariable("RUNNER_TEMP") ?? Path.GetTempPath();
 }

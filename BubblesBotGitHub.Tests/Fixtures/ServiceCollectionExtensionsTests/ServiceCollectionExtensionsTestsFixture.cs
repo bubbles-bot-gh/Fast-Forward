@@ -16,6 +16,16 @@ namespace BubblesBotGitHub.Tests.Fixtures.ServiceCollectionExtensionsTests;
 ]
 public class ServiceCollectionExtensionsTestsFixture : IClassFixture<ServiceCollectionExtensionsTestsFixture>
 {
+    public static TheoryData<string> TheoryData =>
+    [
+        new TheoryDataRow<string>("IdRequestTokenEnvName"),
+        new TheoryDataRow<string>("IdRequestUrlEnvName"),
+        new TheoryDataRow<string>("SupabaseRequestTokenUrl"),
+        new TheoryDataRow<string>("SupabasePublishableKey"),
+        new TheoryDataRow<string>("Audience"),
+        new TheoryDataRow<string>("WorkingDir")
+    ];
+    
     public IServiceProvider GetMockedServices(MockServices mockServices)
     {
         return AssemblyFixture.CreateServiceCollectionWithMocks(
@@ -33,5 +43,17 @@ public class ServiceCollectionExtensionsTestsFixture : IClassFixture<ServiceColl
         host.Services.AddAppServices(AssemblyFixture.GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened);
         
         return host;
+    }
+
+    public IServiceProvider CreateServiceProviderWithOptionMissing(string optionName)
+    {
+        IHostApplicationBuilder host = ConfigureAppHost();
+        Dictionary<string, string?> overrides = new()
+        {
+            [$"Config:{optionName}"] = " "
+        };
+        host.Configuration.AddInMemoryCollection(overrides);
+        
+        return host.Services.BuildServiceProvider();
     }
 }
