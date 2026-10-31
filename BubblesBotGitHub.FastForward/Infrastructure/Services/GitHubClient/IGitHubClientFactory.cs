@@ -1,4 +1,4 @@
-namespace BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+namespace BubblesBotGitHub.FastForward.Infrastructure.Services;
 
 public interface IGitHubClientFactory
 {

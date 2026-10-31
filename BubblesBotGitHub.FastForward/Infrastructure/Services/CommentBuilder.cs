@@ -4,7 +4,6 @@ using BubblesBotGitHub.FastForward.Application.Git;
 using BubblesBotGitHub.FastForward.Core.Entities;
 using Microsoft.Extensions.Options;
 using Octokit;
-using IGitHubClient = BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient.IGitHubClient;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services;
 
@@ -20,7 +19,7 @@ public class CommentBuilder(IOptions<Config> opts, IActionInfo actionInfo, IGitH
             await AddShellBlocks()
         ];
 
-        if (!actionInfo.EventInfo.IsPossible)
+        if (!await actionInfo.EventInfo.IsPossible)
         {
             // Fast-forward is not possible
             comment.Add(await GetNotPossibleLines());
@@ -130,7 +129,7 @@ public class CommentBuilder(IOptions<Config> opts, IActionInfo actionInfo, IGitH
 
     private async Task<List<string>> CreateShellBlock(string owner, string repoName, string sha)
     {
-        GitHubCommit commit = await gitHubClient.GetCommit(owner, repoName, sha);
+        GitHubCommit commit = await gitHubClient.GetCommitAsync(owner, repoName, sha);
         string headRef = actionInfo.PrInfo.HeadRef;
         string baseRef = actionInfo.PrInfo.BaseRef;
         string authorName = commit.Commit.Author.Name;

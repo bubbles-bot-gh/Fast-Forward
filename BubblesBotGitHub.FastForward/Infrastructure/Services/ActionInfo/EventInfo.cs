@@ -1,5 +1,5 @@
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
-using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+using Octokit;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.IssueComment;
 using Octokit.Webhooks.Events.PullRequest;
@@ -9,7 +9,8 @@ namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 internal sealed class EventInfo : IEventInfo
 {
     public bool ShouldExit { get; set; } = false;
-    public bool IsPossible { get; set; } = false;
+    public Task<bool> IsPossible => _isPossible.Value;
+    private readonly Lazy<Task<bool>> _isPossible;
     public bool CommandInvoked { get; }
     public Task<bool> UserHasPerms { get; }
     public string User { get; }
@@ -19,6 +20,7 @@ internal sealed class EventInfo : IEventInfo
         WebhookEvent webhookEvent, 
         IActionOptions opts,
         IRepoInfo repoInfo,
+        IPrInfo prInfo,
         IGitHubClient gitHubClient)
     {
         CommentBody = (webhookEvent as PullRequestOpenedEvent)?.PullRequest.Body
@@ -27,6 +29,12 @@ internal sealed class EventInfo : IEventInfo
             ?? string.Empty;
         CommandInvoked = CommentBody.Trim() == opts.CustomCommand;
         User = webhookEvent.Sender?.Login ?? string.Empty;
-        UserHasPerms = gitHubClient.IsCollaborator(repoInfo.Owner, repoInfo.Name, User);
+        UserHasPerms = gitHubClient.IsCollaboratorAsync(repoInfo.Owner, repoInfo.Name, User);
+        _isPossible = new Lazy<Task<bool>>(async () =>
+        {
+            CompareResult result = await gitHubClient.GetBaseHeadComparison(repoInfo.Owner, repoInfo.Name, prInfo.BaseSha, prInfo.HeadSha);
+            
+            return result.Status == "ahead";
+        });
     }
 }

@@ -1,11 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Extensions;
 using BubblesBotGitHub.Tests.Entities;
 using BubblesBotGitHub.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Moq;
 using Octokit;
 using Octokit.Internal;
@@ -18,34 +21,141 @@ namespace BubblesBotGitHub.Tests.Fixtures;
 
 public class AssemblyFixture : IAsyncLifetime
 {
-    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+    public static string TestTempDirectory;
+    public static string IdTokenRequestTokenEnvName => "ACTIONS_ID_TOKEN_REQUEST_TOKEN";
+    public static string IdTokenRequestTokenUrlEnvName => "ACTIONS_ID_TOKEN_REQUEST_URL";
+    public static string PullRequestOpenedEventPath => "./Events/PullRequestOpenedEvent.json";
+    public static string IssueCommentCreatedEventPath => "./Events/IssueCommentCreatedEvent.json";
+    public static string IssueCommentEditedEventPath => "./Events/IssueCommentEditedEvent.json";
+    public static string TestRepoUrl => "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot-Tests.git";
+    public static string TestRepoBaseSha => "a3f4edfee60026fc44989822ac8789e376f374a2";
+    public static string TestRepoHeadSha => "1f85b89057373f54de739944889d1abec8c048b0";
+
+    public ValueTask InitializeAsync()
+    {
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "test");
+        HostApplicationBuilder builder = new HostApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                ContentRootPath = AppContext.BaseDirectory
+            });
+        builder.Services.AddAppConfig(builder.Configuration);
+        IHost host = builder.Build();
+        
+        IOptions<Config> options = host.Services.GetRequiredService<IOptions<Config>>();
+        TestTempDirectory = options.Value.WorkingDir;
+        
+        return ValueTask.CompletedTask;
+    }
 
     public ValueTask DisposeAsync()
     {
-        Directory.Delete(RootWorkingDir, true);
-        
-        return ValueTask.CompletedTask;        
+        Directory.Delete(TestTempDirectory, true);
+
+        return ValueTask.CompletedTask;
     }
-    
-    public const string RootWorkingDir = "./tmp";
-    public const string CustomCommand = "/fast-forward";
-    private const string PrOpenedEventJson = "./Events/PullRequestOpenedEvent.json";
-    private const string IssueCommentCreatedEventJson = "./Events/IssueCommentCreatedEvent.json";
-    private const string IssueCommentEditedEventJson = "./Events/IssueCommentEditedEvent.json";
-    
-    public const string TestRepoUrl = "https://github.com/LuneiSolei/Fast-Forward-Blossom-Bot-Tests.git";
-    public const string TestRepoBaseSha = "a3f4edfee60026fc44989822ac8789e376f374a2";
-    public const string TestRepoHeadSha = "1f85b89057373f54de739944889d1abec8c048b0";
+
+
+    internal static TheoryData<WebhookEvent, ActionEventType> TheoryData =>
+    [
+        new TheoryDataRow<WebhookEvent, ActionEventType>(GetPullRequestOpenedEvent(), ActionEventType.PullRequestOpened),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(GetIssueCommentCreatedEvent(), ActionEventType.IssueCommentCreated),
+        new TheoryDataRow<WebhookEvent, ActionEventType>(GetIssueCommentEditedEvent(), ActionEventType.IssueCommentEdited)
+    ];
 
     internal static GitHubCommit GetGitHubCommit()
     {
         SimpleJsonSerializer serializer = new();
         return serializer.Deserialize<GitHubCommit>(File.ReadAllText("./Events/Commit.json"));
     }
+
+    internal static HostApplicationBuilder CreateApplicationBuilderWithMocks(WebhookEvent webhookEvent,
+        ActionEventType eventType, MockServices mockServices)
+    {
+        HostApplicationBuilder builder = new HostApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                ContentRootPath = AppContext.BaseDirectory
+            });
+        builder.Services.AddAppConfig(builder.Configuration);
+        builder.Services.AddAppServices(webhookEvent, eventType);
+        AddServicesWithMocks(ref builder, webhookEvent, eventType, mockServices);
+
+        return builder;
+    }
     
-    internal static IServiceCollection CreateServiceCollectionWithMocks(WebhookEvent webhookEvent,
-        ActionEventType eventType,
-        MockServices mockServices)
+    internal static HostApplicationBuilder CreateApplicationBuilderWithMocks(WebhookEvent webhookEvent,
+        ActionEventType eventType, MockServices mockServices, Action<IServiceCollection> configureServices)
+    {
+        HostApplicationBuilder builder = new HostApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                ContentRootPath = AppContext.BaseDirectory
+            });
+        builder.Services.AddAppConfig(builder.Configuration);
+        builder.Services.AddAppServices(webhookEvent, eventType);
+        AddServicesWithMocks(ref builder, webhookEvent, eventType, mockServices);
+        configureServices.Invoke(builder.Services);
+
+        return builder;
+    }
+
+    internal static void AddServicesWithMocks(ref HostApplicationBuilder builder, 
+        WebhookEvent webhookEvent, ActionEventType eventType, MockServices mockServices)
+    {
+        IServiceCollection services = builder.Services;
+
+        // Replace IGitHubClientFactory service, if needed
+        if (mockServices.MockGitHubClientFactory is not null)
+            ReplaceService(services, mockServices.MockGitHubClientFactory);
+
+        // Replace IProcessOutFactory service, if needed
+        if (mockServices.MockProcessOutFactory is not null)
+            ReplaceService(services, mockServices.MockProcessOutFactory);
+            
+        // Replace IGitHubClient service, if needed
+        if (mockServices.MockGitHubClient is not null)
+            ReplaceService(services, mockServices.MockGitHubClient);
+
+        // Replace IGit service, if needed
+        if (mockServices.MockGit is not null)
+            ReplaceService(services, mockServices.MockGit);
+        
+        // Replace IActionOptions service, if needed
+        if (mockServices.MockActionOptions is not null)
+            ReplaceService(services, mockServices.MockActionOptions);
+        
+        // Replace IRepoInfo service, if needed
+        if (mockServices.MockRepoInfo is not null)
+            ReplaceService(services, mockServices.MockRepoInfo);
+        
+        // Replace IEventInfo service, if needed
+        if (mockServices.MockEventInfo is not null)
+            ReplaceService(services, mockServices.MockEventInfo);
+        
+        // Replace IPrInfo service, if needed
+        if (mockServices.MockPrInfo is not null)
+            ReplaceService(services, mockServices.MockPrInfo);
+
+        // Replace IActionInfoFactory service, if needed
+        if (mockServices.MockActionInfoFactory is not null)
+            ReplaceService(services, mockServices.MockActionInfoFactory);
+
+        // Replace IActionInfo service, if needed
+        if (mockServices.MockActionInfo is not null)
+            ReplaceService(services, mockServices.MockActionInfo);
+        
+        // Replace HttpClient, if needed
+        if (mockServices.MockHttpClient is not null)
+            ReplaceService(services, mockServices.MockHttpClient);
+        
+        // Replace ICommentBuilder, if needed
+        if (mockServices.MockCommentBuilder is not null)
+            ReplaceService(services, mockServices.MockCommentBuilder);
+    }
+
+internal static IServiceCollection CreateServiceCollectionWithMocks(WebhookEvent webhookEvent,
+        ActionEventType eventType, MockServices mockServices)
     {
         IServiceCollection services = new ServiceCollection().AddAppServices(webhookEvent, eventType);
 
@@ -110,7 +220,7 @@ public class AssemblyFixture : IAsyncLifetime
 
     internal static PullRequestOpenedEvent GetPullRequestOpenedEvent()
     {
-        string file = File.ReadAllText(PrOpenedEventJson);
+        string file = File.ReadAllText(PullRequestOpenedEventPath);
         PullRequestOpenedEvent eventData = JsonSerializer.Deserialize<PullRequestOpenedEvent>(file) 
             ?? throw new InvalidOperationException();
         
@@ -119,7 +229,7 @@ public class AssemblyFixture : IAsyncLifetime
 
     internal static IssueCommentCreatedEvent GetIssueCommentCreatedEvent()
     {
-        string file = File.ReadAllText(IssueCommentCreatedEventJson);
+        string file = File.ReadAllText(IssueCommentCreatedEventPath);
         IssueCommentCreatedEvent eventData = JsonSerializer.Deserialize<IssueCommentCreatedEvent>(file)
             ?? throw new InvalidOperationException();
 
@@ -128,7 +238,7 @@ public class AssemblyFixture : IAsyncLifetime
 
     internal static IssueCommentEditedEvent GetIssueCommentEditedEvent()
     {
-        string file = File.ReadAllText(IssueCommentEditedEventJson);
+        string file = File.ReadAllText(IssueCommentEditedEventPath);
         IssueCommentEditedEvent eventData = JsonSerializer.Deserialize<IssueCommentEditedEvent>(file)
             ?? throw new InvalidOperationException();
 

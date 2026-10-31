@@ -1,7 +1,4 @@
 using BubblesBotGitHub.FastForward.Application.Git;
-using BubblesBotGitHub.FastForward.Core.Enums;
-using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
-using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
@@ -20,6 +17,5 @@ public interface IPrInfo
     string PrNodeId { get; }
     string BaseNodeId { get; }
     long IssueNumber { get; }
-    
-    Task InitializeAsync(IGit git, IGitHubClient gitHubClient, WebhookEvent webhookEvent, ActionEventType eventType);
+    Task InitializeAsync(IGit git, IGitHubClient gitHubClient);
 }

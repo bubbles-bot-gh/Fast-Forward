@@ -1,8 +1,5 @@
 using BubblesBotGitHub.FastForward.Application.ActionInfo;
 using BubblesBotGitHub.FastForward.Application.Git;
-using BubblesBotGitHub.FastForward.Core.Enums;
-using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
-using Octokit.Webhooks;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
@@ -12,14 +9,12 @@ internal sealed class ActionInfoFactory(
     IEventInfo eventInfo,
     IPrInfo prInfo,
     IGit git,
-    IGitHubClient ghCaller,
-    WebhookEvent webhookEvent,
-    ActionEventType eventType) : IActionInfoFactory
+    IGitHubClient gitHubClient) : IActionInfoFactory
 {
     public async Task<IActionInfo> Create()
     {
         ActionInfo actionInfo = new(actionOptions, repoInfo, eventInfo, prInfo);
-        await actionInfo.PrInfo.InitializeAsync(git, ghCaller, webhookEvent, eventType);
+        await actionInfo.PrInfo.InitializeAsync(git, gitHubClient);
         
         return actionInfo;
     }
