@@ -79,7 +79,7 @@ internal class Program
             await gitHubClient.FastForwardAsync(
                 actionInfo.RepoInfo.Owner,
                 actionInfo.RepoInfo.Name,
-                actionInfo.PrInfo.BaseLabel,
+                actionInfo.PrInfo.BaseRef,
                 actionInfo.PrInfo.HeadSha);
         }
         

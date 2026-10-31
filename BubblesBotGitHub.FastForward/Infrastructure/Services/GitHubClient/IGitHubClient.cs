@@ -12,5 +12,5 @@ public interface IGitHubClient
     public Task<bool> IsCollaboratorAsync(string owner, string name, string user);
     public Task<IssueComment> PostCommentAsync(string owner, string name, uint issueNumber, string comment);
     public Task<GitHubCommit> GetCommitAsync(string owner, string name, string sha);
-    public Task<Reference> FastForwardAsync(string owner, string name, string baseLabel, string headSha);
+    public Task<Reference> FastForwardAsync(string owner, string name, string baseRef, string headSha);
 }
