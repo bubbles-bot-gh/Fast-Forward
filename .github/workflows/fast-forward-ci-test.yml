@@ -4,9 +4,6 @@
 name: Bubbles-Bot-GH Fast-Forward
 
 on:
-  pull_request:
-    types:
-      - opened
   issue_comment:
     types:
       - created
