@@ -62,7 +62,17 @@ internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient)
         string json = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         using JsonDocument doc = JsonDocument.Parse(json);
         
-        return doc.RootElement.GetProperty("token").GetString()
-            ?? throw new InvalidOperationException("Installation token response 'token' field is null");
+        if (doc.RootElement.ValueKind != JsonValueKind.Object
+            || !doc.RootElement.TryGetProperty("token", out JsonElement tokenElement)
+            || tokenElement.GetString() is not { Length: > 0 } installationToken)
+        {
+            string shape = doc.RootElement.ValueKind == JsonValueKind.Object
+                ? "keys: " + string.Join(", ", doc.RootElement.EnumerateObject().Select(p => p.Name))
+                : $"root was {doc.RootElement.ValueKind}";
+            throw new InvalidOperationException(
+                $"Installation token response had no usable 'token' field ({shape}).");
+        }
+
+        return installationToken;
     }
 }
