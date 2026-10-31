@@ -38,7 +38,7 @@ public sealed class GitHubClient(Octokit.IGitHubClient octokitClient) : IGitHubC
     public async Task<Reference> FastForwardAsync(string owner, string name, string baseLabel, string headSha)
     {
         ReferenceUpdate refUpdate = new(headSha, force: false);
-        Console.WriteLine($"::info::Fast-forwarding '{baseLabel}' to '{headSha} on repository '{owner}/{name}'.");
+        Console.WriteLine($"::info::Fast-forwarding '{baseLabel}' to '{headSha}' on repository '{owner}/{name}'.");
         return await octokitClient.Git.Reference.Update(owner, name, baseLabel, refUpdate);
     }
 }
