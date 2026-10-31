@@ -39,6 +39,6 @@ public sealed class GitHubClient(Octokit.IGitHubClient octokitClient) : IGitHubC
     {
         ReferenceUpdate refUpdate = new(headSha, force: false);
         Console.WriteLine($"::notice::Fast-forwarding '{baseRef}' to '{headSha}' on repository '{owner}/{name}'.");
-        return await octokitClient.Git.Reference.Update(owner, name, baseRef, refUpdate);
+        return await octokitClient.Git.Reference.Update(owner, name, $"heads/{baseRef}", refUpdate);
     }
 }
