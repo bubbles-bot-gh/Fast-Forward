@@ -1,6 +1,6 @@
 using Octokit;
 
-namespace BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+namespace BubblesBotGitHub.FastForward.Infrastructure.Services;
 
 public sealed class GitHubClient(Octokit.IGitHubClient octokitClient) : IGitHubClient
 {
@@ -17,22 +17,22 @@ public sealed class GitHubClient(Octokit.IGitHubClient octokitClient) : IGitHubC
         return await octokitClient.Repository.Commit.Compare(owner, name, baseSha, headLabel);
     }
 
-    public async Task<bool> IsCollaborator(string owner, string name, string user)
+    public async Task<bool> IsCollaboratorAsync(string owner, string name, string user)
     {
         return await octokitClient.Repository.Collaborator.IsCollaborator(owner, name, user);
     }
 
-    public async Task<IssueComment> PostComment(string owner, string name, uint issueNumber, string comment)
+    public async Task<IssueComment> PostCommentAsync(string owner, string name, uint issueNumber, string comment)
     {
         return await octokitClient.Issue.Comment.Create(owner, name, issueNumber, comment);
     }
 
-    public async Task<GitHubCommit> GetCommit(string owner, string name, string sha)
+    public async Task<GitHubCommit> GetCommitAsync(string owner, string name, string sha)
     {
         return await octokitClient.Repository.Commit.Get(owner, name, sha);
     }
 
-    public async Task<Reference> FastForward(string owner, string name, string baseLabel, string headSha)
+    public async Task<Reference> FastForwardAsync(string owner, string name, string baseLabel, string headSha)
     {
         ReferenceUpdate refUpdate = new(headSha, force: false);
         

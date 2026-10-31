@@ -1,8 +1,6 @@
-using System.Runtime.CompilerServices;
 using BubblesBotGitHub.FastForward.Application.Git;
 using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
-using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using Microsoft.Extensions.Options;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
@@ -11,12 +9,11 @@ using Octokit.Webhooks.Events.PullRequest;
 
 namespace BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
 
-internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
+internal sealed class PrInfo(IOptions<Config> opts, WebhookEvent webhookEvent, ActionEventType eventType) : IPrInfo
 {
     private IGit _git = null!;
     private IGitHubClient _gitHubClient = null!;
-    private WebhookEvent _webhookEvent = null!;
-
+    
     public string HeadRepoOwner { get; private set; } = string.Empty;
     public string HeadRepoName { get; private set; } = string.Empty;
     public string BaseRef { get; private set; } = string.Empty;
@@ -30,51 +27,11 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
     public string PrNodeId { get; private set; } = string.Empty;
     public string BaseNodeId { get; private set; } = string.Empty;
     public long IssueNumber { get; private set; }
-
-    // TODO: Ensure this gets called in service container extensions!
-    public async Task InitializeAsync(IGit git,
-        IGitHubClient gitHubClient,
-        WebhookEvent webhookEvent,
-        ActionEventType eventType)
+    
+    public async Task InitializeAsync(IGit git, IGitHubClient gitHubClient)
     {
         _git = git;
         _gitHubClient = gitHubClient;
-        _webhookEvent = webhookEvent;
-        
-        Dictionary<ActionEventType, Func<WebhookEvent, Task>> extractionMap = new() 
-        {
-            { ActionEventType.PullRequestOpened, ParsePullRequestOpenedEvent },
-            { ActionEventType.IssueCommentCreated , ParseIssueCommentEvent<IssueCommentCreatedEvent> },
-            { ActionEventType.IssueCommentEdited, ParseIssueCommentEvent<IssueCommentEditedEvent> }
-        };
-        
-        await extractionMap[eventType].Invoke(_webhookEvent);
-    }
-
-    private async Task ParsePullRequestOpenedEvent(WebhookEvent webhookEvent)
-    {
-        PullRequestOpenedEvent eventData = webhookEvent as PullRequestOpenedEvent
-            ?? throw new InvalidOperationException($"Could not cast '{typeof(WebhookEvent).FullName}' to '{typeof(PullRequestOpenedEvent).FullName}'.'");
-
-        HeadRepoName = eventData.PullRequest.Head.Repo.Name;
-        HeadRepoOwner = eventData.PullRequest.Head.User.Login;
-        BaseRef = eventData.PullRequest.Base.Ref;
-        BaseSha = eventData.PullRequest.Base.Sha;
-        BaseLabel = eventData.PullRequest.Base.Label;
-        HeadRef = eventData.PullRequest.Head.Ref;
-        HeadSha = eventData.PullRequest.Head.Sha;
-        HeadLabel = eventData.PullRequest.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, Opts.Value.WorkingDir);
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, Opts.Value.WorkingDir);
-        PrNodeId = eventData.PullRequest.NodeId;
-        IssueNumber = eventData.PullRequest.Number;
-        BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
-    }
-
-    private async Task ParseIssueCommentEvent<TWebhookEvent>(WebhookEvent webhookEvent) where TWebhookEvent : class
-    {
-        TWebhookEvent eventData = webhookEvent as TWebhookEvent
-            ?? throw new InvalidOperationException($"Cannot cast '{webhookEvent.GetType()}' to '{typeof(TWebhookEvent).FullName}'.");
         
         // Verify the repository exists
         if (webhookEvent.Repository is null)
@@ -84,9 +41,45 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
             return;
         }
         
-        string repoOwner = webhookEvent.Repository.Owner.Login;
-        string repoName = webhookEvent.Repository.Name;
-        IssueNumber = (webhookEvent as IssueCommentEvent)!.Issue.Number; // Suppressed because it's impossible for webhookEvent to be null here.
+        Dictionary<ActionEventType, Func<WebhookEvent, Task>> extractionMap = new() 
+        {
+            { ActionEventType.PullRequestOpened, ParsePullRequestOpenedEvent },
+            { ActionEventType.IssueCommentCreated , ParseIssueCommentEvent<IssueCommentCreatedEvent> },
+            { ActionEventType.IssueCommentEdited, ParseIssueCommentEvent<IssueCommentEditedEvent> }
+        };
+        
+        await extractionMap[eventType].Invoke(webhookEvent);
+    }
+
+    private async Task ParsePullRequestOpenedEvent(WebhookEvent webhookEvent)
+    {
+        PullRequestOpenedEvent eventData = webhookEvent as PullRequestOpenedEvent
+            ?? throw new InvalidOperationException($"Could not cast '{typeof(WebhookEvent).FullName}' to "
+                + $"'{typeof(PullRequestOpenedEvent).FullName}'.'");
+
+        HeadRepoName = eventData.PullRequest.Head.Repo.Name;
+        HeadRepoOwner = eventData.PullRequest.Head.User.Login;
+        BaseRef = eventData.PullRequest.Base.Ref;
+        BaseSha = eventData.PullRequest.Base.Sha;
+        BaseLabel = eventData.PullRequest.Base.Label;
+        HeadRef = eventData.PullRequest.Head.Ref;
+        HeadSha = eventData.PullRequest.Head.Sha;
+        HeadLabel = eventData.PullRequest.Head.Label;
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, opts.Value.WorkingDir);
+        MergeBaseParentsAmount = await _git.GetParentCount(MergeBaseSha, opts.Value.WorkingDir);
+        PrNodeId = eventData.PullRequest.NodeId;
+        IssueNumber = eventData.PullRequest.Number;
+        BaseNodeId = eventData.PullRequest.Base.Repo.NodeId;
+    }
+
+    private async Task ParseIssueCommentEvent<TWebhookEvent>(WebhookEvent webhookEvent) where TWebhookEvent : WebhookEvent
+    {
+        TWebhookEvent eventData = webhookEvent as TWebhookEvent
+            ?? throw new InvalidOperationException($"Could not cast '{typeof(WebhookEvent).FullName}' to '{typeof(TWebhookEvent).FullName}'.");
+        
+        string repoOwner = eventData.Repository.Owner.Login;
+        string repoName = eventData.Repository.Name;
+        IssueNumber = (eventData as IssueCommentEvent)!.Issue.Number; // Suppressed because it's impossible for webhookEvent to be null here.
         Octokit.PullRequest pr = await _gitHubClient.GetPullRequestAsync(repoOwner, repoName, IssueNumber);
 
         await ParseIssueCommentPrInfo(pr);
@@ -102,8 +95,8 @@ internal sealed record PrInfo(IOptions<Config> Opts) : IPrInfo
         HeadRef = pr.Head.Ref;
         HeadSha = pr.Head.Sha;
         HeadLabel = pr.Head.Label;
-        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, Opts.Value.WorkingDir);
-        MergeBaseParentsAmount = await _git.GetAmountOfParents(MergeBaseSha, Opts.Value.WorkingDir);
+        MergeBaseSha = await _git.GetMergeBaseSha(BaseSha, HeadSha, opts.Value.WorkingDir);
+        MergeBaseParentsAmount = await _git.GetParentCount(MergeBaseSha, opts.Value.WorkingDir);
         PrNodeId = pr.NodeId;
         BaseNodeId = pr.Base.NodeId;
     }

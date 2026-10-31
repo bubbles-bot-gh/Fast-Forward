@@ -19,4 +19,8 @@ Global
 		{5B9BF9C8-7CB7-4C01-8001-6C4725B5ACA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B9BF9C8-7CB7-4C01-8001-6C4725B5ACA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = BubblesBotGitHub.Tests\bin\Debug\net10.0\tmp\.run\BubblesBotGitHub.Tests.Unit.run.xml
+		File = BubblesBotGitHub.Tests\bin\Debug\net10.0\tmp\.run\Run Tests and Generate Report.run.xml
+	EndGlobalSection
 EndGlobal

@@ -32,16 +32,18 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
             stdOut: await outputTask,
             stdErr: await errorTask);
 
+        [ExcludeFromCodeCoverage(Justification = "Implementation detail")]
         // Helper to avoid quoting issues
         static string QuoteArg(string a) =>
             a.Contains(' ') || a.Contains('"') ? "\"" + a.Replace("\"", "\\\"") + "\"" : a;
         
         // Helper to start process
-        [ExcludeFromCodeCoverage(Justification = "Unnecessary check")]
+        [ExcludeFromCodeCoverage(Justification = "Implementation detail")]
         static Process StartProcess(ProcessStartInfo startInfo) =>
             Process.Start(startInfo) ?? throw new NullReferenceException("Failed to start process");
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Implementation detail")]
     private void DeleteRecursive(string path)
     {
         if (Directory.Exists(path)) { Directory.Delete(path, recursive: true); }
@@ -50,28 +52,39 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
 
     public async Task CloneRepoAsync(string cloneUrl, string workingDir)
     {
-        if (workingDir == string.Empty) throw new ArgumentException(workingDir);
-        Console.WriteLine($"::info::Cloning repo from '{cloneUrl}' into '{workingDir}'");
-        
-        // Make sure arguments are valid
         if (string.IsNullOrWhiteSpace(cloneUrl)) throw new ArgumentException(null, nameof(cloneUrl));
+        if (string.IsNullOrWhiteSpace(workingDir)) throw new ArgumentException(null, nameof(workingDir));
 
-        // Delete and recreate working directory, if it already exists
-        if (Directory.Exists(workingDir))
+        string full = Path.GetFullPath(workingDir).TrimEnd(Path.DirectorySeparatorChar);
+        
+        // Make sure we're not accidentally using shared paths
+        string[] forbidden =
+        [
+            Normalize(Path.GetTempPath()),
+            Normalize(Environment.GetEnvironmentVariable("RUNNER_TEMP") ?? Path.GetTempPath()),
+            Normalize(Path.GetPathRoot(full) ?? "/")
+        ];
+        if (forbidden.Contains(full))
+            throw new ArgumentException($"Refusing to use shared directory '{full}'.", nameof(workingDir));
+
+        Console.WriteLine($"::info::Cloning repo from '{cloneUrl}' into '{full}'.");
+
+        DeleteRecursive(full);
+        Directory.CreateDirectory(full);
+
+        IProcessOut result = await RunProcessAsync("git", ["clone", cloneUrl, "."], full);
+        if (result.ExitCode != 0) throw new GitCommandException($"git clone {cloneUrl} .", result.StdErr);
+        
+        return;
+        
+        [ExcludeFromCodeCoverage]
+        static string Normalize(string path)
         {
-            foreach (string entry in Directory.EnumerateFileSystemEntries(workingDir))
-                DeleteRecursive(entry);
-        }
+            string full = Path.GetFullPath(path);
+            string root = Path.GetPathRoot(full) ?? "";
 
-        Directory.CreateDirectory(workingDir);
-        
-        // Perform cloning
-        IProcessOut result = await RunProcessAsync(
-            fileName: "git",
-            args: ["clone", cloneUrl, "."], 
-            workingDir: workingDir);
-        
-        if (result.ExitCode != 0) throw new GitCommandException( $"git clone {cloneUrl} .", result.StdErr);
+            return full == root ? full : full.TrimEnd(Path.DirectorySeparatorChar);
+        }
     }
 
     public async Task<string> LogCommitGraph(string exclude, string baseSha, string headSha, string workingDir)
@@ -100,7 +113,7 @@ internal class Git(IProcessOutFactory processOutFactory) : IGit
             $"git merge-base {baseSha} {headSha}", result.StdErr) : result.StdOut.Trim();
     }
 
-    public async Task<uint> GetAmountOfParents(string sha, string workingDir)
+    public async Task<uint> GetParentCount(string sha, string workingDir)
     {
         IProcessOut result = await RunProcessAsync(
             fileName: "git", 

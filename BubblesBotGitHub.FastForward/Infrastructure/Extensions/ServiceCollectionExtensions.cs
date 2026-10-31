@@ -5,7 +5,6 @@ using BubblesBotGitHub.FastForward.Core.Entities;
 using BubblesBotGitHub.FastForward.Core.Enums;
 using BubblesBotGitHub.FastForward.Infrastructure.Services;
 using BubblesBotGitHub.FastForward.Infrastructure.Services.ActionInfo;
-using BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Octokit.Webhooks;
@@ -16,7 +15,7 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddAppConfig(IConfiguration configuration)
+        public void AddAppConfig(IConfiguration configuration)
         {
             serviceCollection.AddOptionsWithValidateOnStart<Config>()
                 .Bind(configuration.GetRequiredSection(nameof(Config)))
@@ -27,8 +26,6 @@ public static class ServiceCollectionExtensions
                     && !string.IsNullOrWhiteSpace(config.Audience)
                     && !string.IsNullOrWhiteSpace(config.WorkingDir),
                     "Config section missing or empty. Is appsettings.json being loaded?");
-            
-            return serviceCollection;
         }
         
         public IServiceCollection AddAppServices(WebhookEvent webhookEvent, ActionEventType eventType)

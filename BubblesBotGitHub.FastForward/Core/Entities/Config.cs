@@ -9,5 +9,7 @@ public class Config
     public required string Audience { get; init; }
     
     // Keep init for testing validation
-    public string WorkingDir { get; init; } = Environment.GetEnvironmentVariable("RUNNER_TEMP") ?? Path.GetTempPath();
+    public string WorkingDir { get; init; } = Path.Combine(
+        Environment.GetEnvironmentVariable("RUNNER_TEMP") ?? Path.GetTempPath(), 
+        "bubbles-bot-gh-fast-forward");
 }

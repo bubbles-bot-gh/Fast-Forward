@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Octokit;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
 
-namespace BubblesBotGitHub.FastForward.Infrastructure.Services.GitHubClient;
+namespace BubblesBotGitHub.FastForward.Infrastructure.Services;
 
 internal class GitHubClientFactory(IOptions<Config> opts, HttpClient httpClient) : IGitHubClientFactory
 {
