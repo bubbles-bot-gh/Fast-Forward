@@ -19,7 +19,10 @@ public sealed class GitHubClient(Octokit.IGitHubClient octokitClient) : IGitHubC
 
     public async Task<bool> IsCollaboratorAsync(string owner, string name, string user)
     {
-        return await octokitClient.Repository.Collaborator.IsCollaborator(owner, name, user);
+        bool response = await octokitClient.Repository.Collaborator.IsCollaborator(owner, name, user);
+        Console.WriteLine($"::info::{user} {(response ? "is" : "is not")} a collaborator for '{owner}/{name}'");
+        
+        return response;
     }
 
     public async Task<IssueComment> PostCommentAsync(string owner, string name, uint issueNumber, string comment)
