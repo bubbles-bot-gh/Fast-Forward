@@ -17,6 +17,7 @@ permissions:
   
 jobs:
   fast-forward:
+    if: github.event.comment.user.login != 'bubbles-bot-gh'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
