@@ -30,12 +30,12 @@ In your GitHub repository...
 
 4) Grant permissions to the secret workflow `GITHUB_TOKEN`.
 
-    > [!IMPORTANT]
-    > The following permissions are REQUIRED:
-    > - id-token: write
-    > - contents: write
-    > - pull-requests: write
-    > - issues: write
+> [!IMPORTANT]
+> The following permissions are REQUIRED:
+> - id-token: write
+> - contents: write
+> - pull-requests: write
+> - issues: write
 
 5) Insert the following job step:
     ```
@@ -49,9 +49,9 @@ In your GitHub repository...
             with:
               ref: ${{ github.event.pull_request.head.sha }}
     ```
-    > [!CAUTION]
-    > It is highly advised to either include the if statement, `github.event.comment.user.login != 'bubblesbot-gh'` or 
-      not utilize issue_comment events for this workflow. This is to prevent the bot from recursively triggering workflows.
+> [!CAUTION]
+> It is highly advised to either include the if statement, `github.event.comment.user.login != 'bubblesbot-gh'` or 
+  not utilize issue_comment events for this workflow. This is to prevent the bot from recursively triggering workflows.
    
 6) Create a job step which uses:
     ```
@@ -111,10 +111,10 @@ jobs:
   - default: false
   - description: Boolean that determines if the target branch should automatically be fast-forwarded upon determining 
       that a pull request is able to do so.
-    > [!NOTE]
-    > Fast-forwards can only ever be performed if the pull request/comment author is a collaborator or higher on the
-      repository. If the author does NOT have collaborator or higher permissions on the repository, the fast-forward 
-      will not be performed, even if auto merge is enabled.
+> [!NOTE]
+> Fast-forwards can only ever be performed if the pull request/comment author is a collaborator or higher on the
+  repository. If the author does NOT have collaborator or higher permissions on the repository, the fast-forward 
+  will not be performed, even if auto merge is enabled.
 
 - post_comment:
   - required: false
@@ -134,8 +134,8 @@ jobs:
   - required: false
   - default: /fast-forward
   - description: String that contains the command to be used to trigger BubblesBot.
-    > [!NOTE]
-    > Either a comment on the pull request or the description body of the pull request can utilize this command.
-      The comment must match this command verbatim and contain no other characters (whitespace is automatically trimmed).
+> [!NOTE]
+> Either a comment on the pull request or the description body of the pull request can utilize this command.
+  The comment must match this command verbatim and contain no other characters (whitespace is automatically trimmed).
 
 ## Contributing
