@@ -22,11 +22,11 @@ In your GitHub repository...
 2) Create a workflow file.
 3) In the "on" field, put which workflow triggers you would like to use.
 
-    > [!NOTE]
-    > BubblesBot GH currently only supports the following workflow triggers:
-    > - pull_request opened
-    > - issue_comment created
-    > - issue_comment edited
+> [!NOTE]
+> BubblesBot GH currently only supports the following workflow triggers:
+> - pull_request opened
+> - issue_comment created
+> - issue_comment edited
 
 4) Grant permissions to the secret workflow `GITHUB_TOKEN`.
 
