@@ -47,7 +47,7 @@ In your GitHub repository...
           - name: Checkout
             uses: actions/checkout@v7.0.1
             with:
-              ref: ${{ github.event.pull_request.head.sha }}
+              fetch-depth: 0
     ```
 > [!CAUTION]
 > It is highly advised to either include the if statement, `github.event.comment.user.login != 'bubblesbot-gh'` or 
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
           
       - name: Fast-Forward
         uses: bubbles-bot-gh/fast-forward@v1
