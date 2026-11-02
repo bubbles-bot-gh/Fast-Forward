@@ -96,4 +96,6 @@ jobs:
 ## Contributing
 
 ### Contributors
-<a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors"></a>
+<a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors"><a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=bubbles-bot-gh/fast-forward" />
+</a>
