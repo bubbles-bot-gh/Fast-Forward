@@ -17,74 +17,12 @@ comes in!
 - [Contributing](#contributing)
 
 ## Usage
-In your GitHub repository...
-1) Install the [BubblesBot GH GitHub App](https://github.com/apps/bubblesbot-gh) (required).
-2) Create a workflow file.
-3) In the "on" field, put which workflow triggers you would like to use.
+Make sure to install the [BubblesBot GH GitHub App](https://github.com/apps/bubblesbot-gh) (required).
 
-> [!NOTE]
-> BubblesBot GH currently only supports the following workflow triggers:
-> - pull_request opened
-> - issue_comment created
-> - issue_comment edited
+See [example](example-workflow.yml) for a complete workflow using this repository's action.
 
-4) Grant permissions to the secret workflow `GITHUB_TOKEN`.
-
-> [!IMPORTANT]
-> The following permissions are REQUIRED:
-> - id-token: write
-> - contents: write
-> - pull-requests: write
-> - issues: write
-
-5) Insert the following job step:
-    ```
-    jobs:
-      fast-forward:
-        if: github.event.comment.user.login != 'bubblesbot-gh'
-        runs-on: ubuntu-latest
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v7.0.1
-            with:
-              fetch-depth: 0
-    ```
-> [!CAUTION]
-> It is highly advised to either include the if statement, `github.event.comment.user.login != 'bubblesbot-gh'` or 
-  not utilize issue_comment events for this workflow. This is to prevent the bot from recursively triggering workflows.
-   
-6) Create a job step which uses:
-    ```
-    - name: Fast-Forward
-      uses: bubbles-bot-gh/fast-forward@v1
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        auto_merge: true
-        post_comment: always
-        custom_command: /fast-forward
-    ```
-
-An example workflow file can be found at [example-workflow.yml](https://github.com/bubbles-bot-gh/Fast-Forward/blob/main/example-workflow.yml)
-which looks like this:
+**Basic Setup:**
 ```
-name: BubblesBot GH Fast-Forward
-
-on:
-  pull_request:
-    types:
-      - opened
-  issue_comment:
-    types:
-      - created
-      - edited
-
-permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
-  issues: write
-  
 jobs:
   fast-forward:
     if: github.event.comment.user.login != 'bubblesbot-gh'
@@ -96,14 +34,31 @@ jobs:
           fetch-depth: 0
           
       - name: Fast-Forward
-        uses: bubbles-bot-gh/fast-forward@v1
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          auto_merge: true
-          post_comment: always
-          custom_command: /fast-forward
+      uses: bubbles-bot-gh/fast-forward@v1
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        auto_merge: true
+        post_comment: always
+        custom_command: /fast-forward
 ```
+
+> [!CAUTION]
+> It is highly advised to either include the if statement, `github.event.comment.user.login != 'bubblesbot-gh'` or
+  not utilize issue_comment events for this workflow. This is to prevent the bot from recursively triggering workflows.
+
+> [!NOTE]
+> BubblesBot GH currently only supports the following workflow triggers:
+> - pull_request opened
+> - issue_comment created
+> - issue_comment edited
+
+> [!IMPORTANT]
+> The following permissions are REQUIRED:
+> - id-token: write
+> - contents: write
+> - pull-requests: write
+> - issues: write
 
 ## Parameters
 - auto_merge:
