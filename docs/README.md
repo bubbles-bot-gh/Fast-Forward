@@ -12,13 +12,16 @@ comes in!
 
 ## Table of Contents
 
+- [Install](#install)
 - [Usage](#usage)
 - [Parameters](#parameters)
 - [Contributing](#contributing)
+- [Code of Conduct](#code-of-conduct)
+
+## Install
+Repositories that wish to use this action are required install the [BubblesBot GH GitHub App](https://github.com/apps/bubblesbot-gh).
 
 ## Usage
-Make sure to install the [BubblesBot GH GitHub App](https://github.com/apps/bubblesbot-gh) (required).
-
 See [example](example-workflow.yml) for a complete workflow using this repository's action.
 
 **Basic Setup:**
@@ -99,6 +102,9 @@ jobs:
 <a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors"><a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=bubbles-bot-gh/fast-forward" />
 </a>
+
+## Code of Conduct
+See [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## License
 [MIT](LICENSE) © Lunei Solei (@luneisolei)
