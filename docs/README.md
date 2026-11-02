@@ -94,3 +94,6 @@ jobs:
   The comment must match this command verbatim and contain no other characters (whitespace is automatically trimmed).
 
 ## Contributing
+
+### Contributors
+<a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors"></a>
