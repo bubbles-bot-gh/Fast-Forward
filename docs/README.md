@@ -99,3 +99,6 @@ jobs:
 <a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors"><a href="https://github.com/bubbles-bot-gh/fast-forward/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=bubbles-bot-gh/fast-forward" />
 </a>
+
+## License
+[MIT](LICENSE)
