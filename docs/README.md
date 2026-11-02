@@ -101,4 +101,4 @@ jobs:
 </a>
 
 ## License
-[MIT](LICENSE)
+[MIT](LICENSE) © Lunei Solei (@luneisolei)
