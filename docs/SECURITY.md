@@ -13,4 +13,4 @@ Please do not report security issues in public including, but not limited to, is
 To report a vulnerability, you can:
 
 - use GitHub's [private vulnerability reporting](../../../security/advisories/new) (the "Report a vulnerability" button on the Security tab)
-- send an email to luneisolei.github@gmail.com
+- email luneisolei.github@gmail.com
