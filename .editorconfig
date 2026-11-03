@@ -29,5 +29,5 @@ instance_members_qualify_declared_in = base_class
 csharp_style_var_for_built_in_types = false
 csharp_style_var_elsewhere = false
 
-[*.{yml,yaml,mmd}]
+[*.{yml,yaml,mmd,cff}]
 indent_size = 2
