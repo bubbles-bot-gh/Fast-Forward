@@ -107,4 +107,4 @@ jobs:
 See [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## License
-[MIT](LICENSE) © Lunei Solei (@luneisolei)
+[MIT](../LICENSE) © Lunei Solei (@luneisolei)
