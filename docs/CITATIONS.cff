@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Solei"
+    given-names: "Lunei"
+    orcid: https://orcid.org/my-orcid?orcid=0009-0004-1228-1097
+title: "BubblesBot GH Fast-Forward"
+version: 1.0.0
+date-released: 2026-11-03
+url: "https://github.com/bubbles-bot-gh/fast-forward"
